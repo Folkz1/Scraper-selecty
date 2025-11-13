@@ -1,0 +1,281 @@
+{
+  "name": "Selecty Scraper Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 7,11,17 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://sua-app.easypanel.app/api/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpHeaderAuth": {
+          "name": "Authorization",
+          "value": "Bearer YOUR_API_KEY"
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 900000,
+          "retry": {
+            "enabled": true,
+            "maxTries": 2,
+            "waitBetween": 300000
+          }
+        }
+      },
+      "id": "http-scraper",
+      "name": "Execute Scraper",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "success-check",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "success-check",
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "documentId": "YOUR_GOOGLE_SHEETS_ID",
+        "sheetName": "Vagas Selecty",
+        "range": "A2:Z1000"
+      },
+      "id": "clear-sheet",
+      "name": "Clear Old Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Processar dados das vagas para o Google Sheets\nconst vacancies = $input.first().json.vacancies || [];\n\nconst processedData = vacancies.map((vacancy, index) => {\n  return {\n    linha: index + 2, // Começar na linha 2 (A1 é cabeçalho)\n    dados: vacancy.formattedText\n  };\n});\n\n// Adicionar timestamp\nprocessedData.unshift({\n  linha: 1,\n  dados: `Última atualização: ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`\n});\n\nreturn processedData;"
+      },
+      "id": "process-data",
+      "name": "Process Vacancy Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": "YOUR_GOOGLE_SHEETS_ID",
+        "sheetName": "Vagas Selecty",
+        "columnToMatchOn": "A",
+        "valueToMatchOn": "={{ $json.linha }}",
+        "options": {
+          "cellFormat": "USER_ENTERED",
+          "useAppend": true
+        },
+        "dataToSend": "defineInNode",
+        "valuesToSend": {
+          "A": "={{ $json.dados }}"
+        }
+      },
+      "id": "update-sheet",
+      "name": "Update Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "message": "❌ Erro no Scraper Selecty",
+        "additionalFields": {
+          "attachments": [
+            {
+              "color": "danger",
+              "fields": {
+                "item": [
+                  {
+                    "short": true,
+                    "title": "Erro",
+                    "value": "={{ $json.error || 'Erro desconhecido' }}"
+                  },
+                  {
+                    "short": true,
+                    "title": "Timestamp",
+                    "value": "={{ $json.timestamp || new Date().toISOString() }}"
+                  }
+                ]
+              },
+              "title": "Falha na execução do scraper"
+            }
+          ]
+        }
+      },
+      "id": "error-notification",
+      "name": "Error Notification",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "message": "✅ Scraper Selecty executado com sucesso",
+        "additionalFields": {
+          "attachments": [
+            {
+              "color": "good",
+              "fields": {
+                "item": [
+                  {
+                    "short": true,
+                    "title": "Vagas Extraídas",
+                    "value": "={{ $json.extractedVacancies }}/{{ $json.totalVacancies }}"
+                  },
+                  {
+                    "short": true,
+                    "title": "Taxa de Sucesso",
+                    "value": "={{ $json.successRate }}"
+                  },
+                  {
+                    "short": true,
+                    "title": "Tempo de Execução",
+                    "value": "={{ $json.executionTime }}"
+                  },
+                  {
+                    "short": true,
+                    "title": "Timestamp",
+                    "value": "={{ $json.timestamp }}"
+                  }
+                ]
+              },
+              "title": "Relatório de Execução"
+            }
+          ]
+        }
+      },
+      "id": "success-notification",
+      "name": "Success Notification",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [1340, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute Scraper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Scraper": {
+      "main": [
+        [
+          {
+            "node": "Check Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Success": {
+      "main": [
+        [
+          {
+            "node": "Clear Old Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Process Vacancy Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Vacancy Data": {
+      "main": [
+        [
+          {
+            "node": "Update Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Success Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-13T20:30:00.000Z",
+  "versionId": "1"
+}

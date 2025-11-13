@@ -1,0 +1,31 @@
+{
+  "name": "selecty-scraper-automation",
+  "version": "1.0.0",
+  "description": "Automated scraper for Selecty vacancy portal with REST API",
+  "main": "api/server.js",
+  "scripts": {
+    "start": "node api/server.js",
+    "dev": "node api/server.js",
+    "test": "node test-scraper.js",
+    "test-api": "node test-api.js",
+    "scraper": "node run-full-scraper.js",
+    "docker:build": "docker build -t selecty-scraper .",
+    "docker:run": "docker run -d --name selecty-scraper -p 3000:3000 --env-file .env selecty-scraper",
+    "docker:stop": "docker stop selecty-scraper && docker rm selecty-scraper"
+  },
+  "keywords": [
+    "scraper",
+    "puppeteer",
+    "automation",
+    "selecty"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "puppeteer": "^21.5.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "cors": "^2.8.5"
+  }
+}

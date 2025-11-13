@@ -95,9 +95,7 @@ Thumbs.db
 
 # Scraper output files
 vagas-selecty-*.json
-vagas-selecty-*.txt
-*.json
-*.txt
+vagas-selecty-formatadas-*.txt
 
 # Test files
 test-scraper.js
