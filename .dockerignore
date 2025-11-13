@@ -1,0 +1,19 @@
+node_modules
+.env
+.env.local
+.git
+.gitignore
+README.md
+.DS_Store
+.vscode
+.idea
+*.log
+logs
+test-scraper.js
+run-full-scraper.js
+scraper vagas.js
+TESTING.md
+.kiro
+*.json
+*.txt
+vagas-selecty-*
