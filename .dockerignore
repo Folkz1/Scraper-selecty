@@ -3,7 +3,6 @@ node_modules
 .env.local
 .git
 .gitignore
-README.md
 .DS_Store
 .vscode
 .idea
@@ -14,6 +13,11 @@ run-full-scraper.js
 scraper vagas.js
 TESTING.md
 .kiro
-*.json
-*.txt
-vagas-selecty-*
+vagas-selecty-*.json
+vagas-selecty-*.txt
+
+# Não ignorar arquivos essenciais
+!package.json
+!package-lock.json
+!n8n-workflow.json
+!.npmrc
