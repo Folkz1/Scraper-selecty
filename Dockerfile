@@ -19,13 +19,13 @@ ENV npm_config_puppeteer_skip_chromium_download=true
 # Diretório de trabalho
 WORKDIR /app
 
-# Copiar arquivos de dependências
-COPY package*.json ./
+# Copiar arquivos de configuração e dependências
+COPY package.json package-lock.json .npmrc ./
 
 # Instalar dependências com configurações otimizadas
 RUN npm config set fetch-retry-maxtimeout 60000 && \
     npm config set fetch-retry-mintimeout 10000 && \
-    npm install --production --no-optional --prefer-offline && \
+    npm install --omit=dev --prefer-offline && \
     npm cache clean --force
 
 # Copiar código da aplicação
