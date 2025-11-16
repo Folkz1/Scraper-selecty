@@ -30,9 +30,19 @@ class VacancyExtractor {
         const statusVaga = await this.extractVacancyStatus(page, index);
         console.log(`  Status da vaga: ${statusVaga}`);
         
-        const opened = await this.openVacancyModal(page, index);
-        if (!opened) {
+        // Abrir modal e obter título esperado
+        const modalResult = await this.openVacancyModal(page, index);
+        if (!modalResult.success) {
           console.warn(`⚠ Não foi possível abrir modal da vaga ${index + 1}, pulando...`);
+          errorCount++;
+          continue;
+        }
+
+        // CRÍTICO: Aguardar o conteúdo do modal mudar para a vaga correta
+        const contentChanged = await this.waitForModalContentChange(page, modalResult.expectedTitle);
+        if (!contentChanged) {
+          console.warn(`⚠ Conteúdo do modal não atualizou para vaga ${index + 1}, pulando...`);
+          await this.closeModal(page);
           errorCount++;
           continue;
         }
@@ -91,9 +101,10 @@ class VacancyExtractor {
     try {
       const rowNumber = rowIndex + 1; // Converter para 1-based
       
-      // Extrair o status da vaga usando o seletor da linha
+      // Extrair o status da vaga usando o seletor da linha no tbody
       const status = await page.evaluate((rowNum) => {
-        const row = document.querySelector(`tr:nth-of-type(${rowNum})`);
+        // Buscar especificamente no tbody para evitar pegar o thead
+        const row = document.querySelector(`tbody tr:nth-child(${rowNum})`);
         if (!row) {
           return 'Status não encontrado';
         }
@@ -126,15 +137,50 @@ class VacancyExtractor {
    * Abre o modal de detalhes de uma vaga
    * @param {Page} page - Instância da página do Puppeteer
    * @param {number} rowIndex - Índice da linha da vaga (0-based)
-   * @returns {Promise<boolean>} True se modal foi aberto
+   * @returns {Promise<Object>} Objeto com success e expectedTitle
    */
   async openVacancyModal(page, rowIndex) {
     try {
       const rowNumber = rowIndex + 1; // Converter para 1-based
       console.log(`Abrindo modal da vaga ${rowNumber}...`);
       
-      // Passo 1: Clicar no ícone de menu (três pontos) da linha
-      const menuIconSelector = `tr:nth-of-type(${rowNumber}) i.fas`;
+      // Passo 1: Capturar o título esperado da vaga ANTES de abrir o modal
+      const expectedTitle = await page.evaluate((rowNum) => {
+        const row = document.querySelector(`tbody tr:nth-child(${rowNum})`);
+        if (!row) return null;
+        
+        // Procurar especificamente pelo cargo (geralmente está em um elemento com classe específica)
+        // Tentar múltiplos seletores para encontrar o cargo
+        let cargo = null;
+        
+        // Tentar pegar de um span ou div com classe específica
+        const cargoElement = row.querySelector('[class*="cargo"], [class*="title"], [class*="job"]');
+        if (cargoElement) {
+          cargo = cargoElement.textContent.trim();
+        }
+        
+        // Se não encontrou, pegar o primeiro texto significativo da linha
+        if (!cargo) {
+          const allText = row.textContent.trim();
+          // Procurar por padrão: "# 370 Marceneiro, 1 Posição..."
+          // Extrair apenas o cargo (palavra após o número)
+          const match = allText.match(/#\s*\d+\s+([^,]+)/);
+          if (match) {
+            cargo = match[1].trim();
+          }
+        }
+        
+        return cargo;
+      }, rowNumber);
+      
+      if (!expectedTitle) {
+        throw new Error('Não foi possível identificar o título da vaga na tabela');
+      }
+      
+      console.log(`  Título esperado: "${expectedTitle}"`);
+      
+      // Clicar no ícone de menu (três pontos) da linha no tbody
+      const menuIconSelector = `tbody tr:nth-child(${rowNumber}) i.fas`;
       console.log(`  Aguardando ícone de menu: ${menuIconSelector}`);
       await page.waitForSelector(menuIconSelector, { visible: true, timeout: 5000 });
       console.log(`  Clicando no ícone de menu...`);
@@ -144,61 +190,60 @@ class VacancyExtractor {
       console.log(`  Aguardando dropdown abrir...`);
       await this.sleep(1000);
       
-      // Passo 3: Clicar em "Informações da vaga" usando aria-label
+      // Passo 3: Clicar em "Informações da vaga" usando seletor específico
+      // Baseado no exemplo: tr:nth-of-type(1) ul > div:nth-of-type(2) button
       console.log(`  Procurando botão "Informações da vaga"...`);
-      const buttonClicked = await page.evaluate(() => {
-        // Procurar por botão com aria-label ou texto "Informações da vaga"
-        const buttons = Array.from(document.querySelectorAll('button, a'));
-        const infoButton = buttons.find(btn => {
-          const ariaLabel = btn.getAttribute('aria-label') || '';
-          const text = btn.textContent || '';
-          return ariaLabel.includes('Informações da vaga') || text.includes('Informações da vaga');
+      const infoButtonSelector = `tbody tr:nth-child(${rowNumber}) ul > div:nth-of-type(2) button`;
+      
+      try {
+        await page.waitForSelector(infoButtonSelector, { visible: true, timeout: 3000 });
+        console.log(`  Clicando em "Informações da vaga" com seletor: ${infoButtonSelector}`);
+        await page.click(infoButtonSelector);
+        console.log(`  Botão clicado, aguardando modal...`);
+      } catch (error) {
+        // Fallback: tentar com aria-label
+        console.log(`  Seletor específico falhou, tentando com aria-label...`);
+        const buttonInfo = await page.evaluate(() => {
+          const buttons = Array.from(document.querySelectorAll('button, a, li, [role="menuitem"]'));
+          
+          const infoButton = buttons.find(btn => {
+            const ariaLabel = btn.getAttribute('aria-label') || '';
+            const text = btn.textContent.trim();
+            return ariaLabel.includes('Informações da vaga') || 
+                   text === 'Informações da vaga' ||
+                   text.includes('Informações da vaga');
+          });
+          
+          if (infoButton) {
+            infoButton.click();
+            return { success: true };
+          }
+          return { success: false };
         });
         
-        if (infoButton) {
-          infoButton.click();
-          return true;
+        if (!buttonInfo.success) {
+          throw new Error('Botão "Informações da vaga" não encontrado');
         }
-        return false;
-      });
-      
-      if (!buttonClicked) {
-        throw new Error('Botão "Informações da vaga" não encontrado');
       }
       
-      console.log(`  Botão clicado, aguardando modal...`);
-      
-      // Passo 4: Aguardar modal aparecer - tentar múltiplos seletores
+      // Passo 4: Aguardar modal aparecer
       const modalSelectors = [
         '.modal-dialog',
         '.modal-content',
         '[role="dialog"]',
         '.modal',
-        '[class*="modal"]',
-        'h4:contains("Detalhes da vaga")'
+        '[class*="modal"]'
       ];
       
       let modalFound = false;
       for (const selector of modalSelectors) {
         try {
-          if (selector.includes('contains')) {
-            // Para seletores com :contains, usar evaluate
-            modalFound = await page.evaluate(() => {
-              const headers = Array.from(document.querySelectorAll('h4'));
-              return headers.some(h => h.textContent.includes('Detalhes da vaga'));
-            });
-            if (modalFound) {
-              console.log(`  Modal encontrado com texto "Detalhes da vaga"`);
-              break;
-            }
-          } else {
-            await page.waitForSelector(selector, { visible: true, timeout: 2000 });
-            console.log(`  Modal encontrado com seletor: ${selector}`);
-            modalFound = true;
-            break;
-          }
+          await page.waitForSelector(selector, { visible: true, timeout: 2000 });
+          console.log(`  Modal encontrado com seletor: ${selector}`);
+          modalFound = true;
+          break;
         } catch (e) {
-          // Tentar próximo seletor
+          continue;
         }
       }
       
@@ -206,16 +251,75 @@ class VacancyExtractor {
         throw new Error('Modal não apareceu após clicar no botão');
       }
       
-      // Aguardar conteúdo carregar
-      await this.sleep(1000);
-      
       console.log(`✓ Modal da vaga ${rowNumber} aberto`);
-      return true;
+      return { success: true, expectedTitle };
       
     } catch (error) {
       console.error(`✗ Erro ao abrir modal: ${error.message}`);
-      return false;
+      return { success: false, expectedTitle: null };
     }
+  }
+
+  /**
+   * Aguarda o conteúdo do modal mudar para a vaga correta
+   * @param {Page} page - Instância da página do Puppeteer
+   * @param {string} expectedTitle - Título esperado da vaga
+   * @param {number} maxAttempts - Número máximo de tentativas
+   * @returns {Promise<boolean>} True se o conteúdo mudou
+   */
+  async waitForModalContentChange(page, expectedTitle, maxAttempts = 20) {
+    console.log(`  Aguardando modal atualizar para: "${expectedTitle}"...`);
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        // Extrair o título atual do modal
+        const currentTitle = await page.evaluate(() => {
+          // Procurar pelo campo "Título da Vaga" no modal
+          const modalElement = document.querySelector('[class*="modal"]');
+          if (!modalElement) return null;
+          
+          const fullText = modalElement.innerText || '';
+          
+          // Tentar extrair o título da vaga do texto
+          const match = fullText.match(/Título da Vaga:\s*(.+?)\s+(?:Tipo de Requisição|$)/);
+          if (match) {
+            return match[1].trim();
+          }
+          
+          // Fallback: pegar o primeiro h4 ou h3
+          const header = modalElement.querySelector('h4, h3');
+          if (header) {
+            return header.textContent.trim();
+          }
+          
+          return null;
+        });
+        
+        if (currentTitle) {
+          console.log(`  [Tentativa ${attempt}/${maxAttempts}] Título atual: "${currentTitle}"`);
+          
+          // Verificar se o título contém parte do título esperado ou vice-versa
+          // (às vezes o título na tabela é abreviado)
+          const titleMatch = 
+            currentTitle.toLowerCase().includes(expectedTitle.toLowerCase()) ||
+            expectedTitle.toLowerCase().includes(currentTitle.toLowerCase());
+          
+          if (titleMatch) {
+            console.log(`  ✓ Conteúdo do modal atualizado corretamente!`);
+            return true;
+          }
+        }
+        
+        // Aguardar antes da próxima tentativa
+        await this.sleep(300);
+        
+      } catch (error) {
+        console.warn(`  ⚠ Erro na tentativa ${attempt}: ${error.message}`);
+      }
+    }
+    
+    console.warn(`  ⚠ Timeout: Modal não atualizou após ${maxAttempts} tentativas`);
+    return false;
   }
 
   /**
@@ -225,9 +329,6 @@ class VacancyExtractor {
    */
   async extractVacancyDetails(page) {
     try {
-      // Aguardar um pouco para o modal carregar completamente
-      await this.sleep(1500);
-      
       // Aguardar modal estar completamente carregado - tentar múltiplos seletores
       const modalSelectors = [
         '[class*="modal"]',
@@ -306,13 +407,19 @@ class VacancyExtractor {
           throw new Error(`Modal não encontrado com seletor: ${modalSelector}`);
         }
         
+        // Extrair título da vaga para debug
+        const titleElement = modalElement.querySelector('h4, h3, h2, h1');
+        const title = titleElement ? titleElement.textContent.trim() : 'Título não encontrado';
+        
         return {
           fullText: modalElement.innerText || '',
           html: modalElement.innerHTML || '',
-          className: modalElement.className || ''
+          className: modalElement.className || '',
+          debugTitle: title
         };
       }, modal);
 
+      console.log(`  DEBUG: Título do modal: ${modalData.debugTitle}`);
       console.log(`  Conteúdo extraído (${modalData.fullText.length} chars), parseando campos...`);
       
       // Parsear campos do texto extraído

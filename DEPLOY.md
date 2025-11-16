@@ -119,7 +119,7 @@ curl -X POST \
 - **Method**: POST
 - **Authentication**: Header Auth
 - **Header Name**: Authorization
-- **Header Value**: `Bearer SUA_API_KEY`
+- **Header Value**: `Bearer 1234`
 
 #### Google Sheets Node:
 1. Crie credencial do Google Sheets
