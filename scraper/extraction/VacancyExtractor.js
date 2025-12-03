@@ -275,24 +275,40 @@ class VacancyExtractor {
       await page.keyboard.press('Escape');
       await this.sleep(300);
       
+      // Scroll para garantir que a linha está visível
+      await page.evaluate((rowNum) => {
+        const row = document.querySelector(`tbody tr:nth-child(${rowNum})`);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, rowNumber);
+      await this.sleep(300);
+      
       // Clicar no ícone de menu (três pontos) da linha no tbody
       const menuIconSelectors = [
+        `tbody tr:nth-child(${rowNumber}) i.fas.fa-ellipsis-v`,
         `tbody tr:nth-child(${rowNumber}) i.fas`,
         `tbody tr:nth-child(${rowNumber}) i.fa`,
+        `tbody tr:nth-child(${rowNumber}) i.fa-ellipsis-v`,
         `tbody tr:nth-child(${rowNumber}) button i`,
         `tbody tr:nth-child(${rowNumber}) .dropdown-toggle`,
-        `tbody tr:nth-child(${rowNumber}) [data-toggle="dropdown"]`
+        `tbody tr:nth-child(${rowNumber}) [data-toggle="dropdown"]`,
+        `tbody tr:nth-child(${rowNumber}) button.btn-link`,
+        `tbody tr:nth-child(${rowNumber}) td:last-child button`,
+        `tbody tr:nth-child(${rowNumber}) td:last-child i`
       ];
       
       let menuClicked = false;
       for (const menuSelector of menuIconSelectors) {
         try {
-          console.log(`  Tentando ícone de menu: ${menuSelector}`);
-          await page.waitForSelector(menuSelector, { visible: true, timeout: 2000 });
-          await page.click(menuSelector);
-          menuClicked = true;
-          console.log(`  ✓ Menu clicado`);
-          break;
+          const exists = await page.$(menuSelector);
+          if (exists) {
+            console.log(`  Tentando ícone de menu: ${menuSelector}`);
+            await page.click(menuSelector);
+            menuClicked = true;
+            console.log(`  ✓ Menu clicado`);
+            break;
+          }
         } catch (e) {
           continue;
         }
@@ -304,19 +320,46 @@ class VacancyExtractor {
       
       // Passo 2: Aguardar dropdown abrir
       console.log(`  Aguardando dropdown abrir...`);
-      await this.sleep(800);
+      await this.sleep(1000);
+      
+      // Verificar se dropdown abriu
+      const dropdownOpen = await page.evaluate((rowNum) => {
+        const row = document.querySelector(`tbody tr:nth-child(${rowNum})`);
+        if (!row) return false;
+        const dropdown = row.querySelector('.dropdown-menu.show, .dropdown-menu[style*="display: block"], ul.show, .show .dropdown-menu');
+        return !!dropdown;
+      }, rowNumber);
+      
+      if (!dropdownOpen) {
+        console.log(`  ⚠ Dropdown não abriu, tentando clicar novamente...`);
+        // Tentar clicar novamente no menu
+        for (const menuSelector of menuIconSelectors) {
+          try {
+            await page.click(menuSelector);
+            await this.sleep(1000);
+            break;
+          } catch (e) {
+            continue;
+          }
+        }
+      }
       
       // Passo 3: Clicar em "Informações da vaga" - tentar múltiplas abordagens
       console.log(`  Procurando botão "Informações da vaga"...`);
       
       let infoClicked = false;
       
-      // Abordagem 1: Seletor específico da linha
+      // Abordagem 1: Seletor específico da linha (múltiplas variações)
       const infoButtonSelectors = [
         `tbody tr:nth-child(${rowNumber}) ul > div:nth-of-type(2) button`,
-        `tbody tr:nth-child(${rowNumber}) .dropdown-menu button:nth-child(2)`,
+        `tbody tr:nth-child(${rowNumber}) .dropdown-menu button:nth-of-type(2)`,
+        `tbody tr:nth-child(${rowNumber}) .dropdown-menu > div:nth-of-type(2) button`,
+        `tbody tr:nth-child(${rowNumber}) .dropdown-menu li:nth-child(2) button`,
+        `tbody tr:nth-child(${rowNumber}) .dropdown-menu li:nth-child(2) a`,
         `tbody tr:nth-child(${rowNumber}) .dropdown-menu li:nth-child(2)`,
-        `tbody tr:nth-child(${rowNumber}) [aria-label*="Informações"]`
+        `tbody tr:nth-child(${rowNumber}) [aria-label*="Informações"]`,
+        `tbody tr:nth-child(${rowNumber}) .show button:nth-of-type(2)`,
+        `tbody tr:nth-child(${rowNumber}) ul.show > div:nth-of-type(2) button`
       ];
       
       for (const selector of infoButtonSelectors) {
@@ -332,38 +375,53 @@ class VacancyExtractor {
         }
       }
       
-      // Abordagem 2: Buscar por texto
+      // Abordagem 2: Buscar por texto DENTRO da linha específica
       if (!infoClicked) {
-        console.log(`  Tentando encontrar por texto...`);
-        infoClicked = await page.evaluate(() => {
-          // Procurar em dropdowns visíveis
-          const dropdowns = document.querySelectorAll('.dropdown-menu.show, .dropdown-menu[style*="display: block"], ul.show');
+        console.log(`  Tentando encontrar por texto na linha ${rowNumber}...`);
+        infoClicked = await page.evaluate((rowNum) => {
+          // Buscar dropdown DENTRO da linha específica
+          const row = document.querySelector(`tbody tr:nth-child(${rowNum})`);
+          if (!row) return false;
           
-          for (const dropdown of dropdowns) {
-            const buttons = dropdown.querySelectorAll('button, a, li');
+          // Procurar dropdown dentro da linha (múltiplos seletores)
+          const dropdownSelectors = [
+            '.dropdown-menu.show',
+            '.dropdown-menu',
+            'ul.dropdown-menu',
+            'ul.show',
+            '.show ul',
+            '[class*="dropdown"]'
+          ];
+          
+          let dropdown = null;
+          for (const sel of dropdownSelectors) {
+            dropdown = row.querySelector(sel);
+            if (dropdown) break;
+          }
+          
+          if (dropdown) {
+            const buttons = dropdown.querySelectorAll('button, a, li, div, span');
             for (const btn of buttons) {
               const text = btn.textContent.trim().toLowerCase();
-              if (text.includes('informações') || text.includes('informacoes')) {
+              if (text.includes('informações') || text.includes('informacoes') || text === 'info') {
                 btn.click();
                 return true;
               }
             }
           }
           
-          // Fallback: procurar qualquer botão visível com esse texto
-          const allButtons = document.querySelectorAll('button, a, [role="menuitem"]');
-          for (const btn of allButtons) {
-            const text = btn.textContent.trim().toLowerCase();
-            const style = window.getComputedStyle(btn);
-            if ((text.includes('informações') || text.includes('informacoes')) && 
-                style.display !== 'none' && style.visibility !== 'hidden') {
-              btn.click();
+          // Fallback: procurar qualquer elemento clicável na linha com texto de informações
+          const allClickable = row.querySelectorAll('button, a, [role="button"], [onclick]');
+          for (const el of allClickable) {
+            const text = el.textContent.trim().toLowerCase();
+            if (text.includes('informações') || text.includes('informacoes')) {
+              el.click();
               return true;
             }
           }
           
           return false;
-        });
+        }, rowNumber);
       }
       
       if (!infoClicked) {
