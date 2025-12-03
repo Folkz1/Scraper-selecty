@@ -10,7 +10,7 @@ class VacancyExtractor {
   }
 
   /**
-   * Extrai todas as vagas da página
+   * Extrai todas as vagas da página (com suporte a paginação)
    * @param {Page} page - Instância da página do Puppeteer
    * @param {number} totalVacancies - Número total de vagas esperadas
    * @returns {Promise<Array>} Array com dados de todas as vagas
@@ -19,62 +19,100 @@ class VacancyExtractor {
     const vacancies = [];
     let successCount = 0;
     let errorCount = 0;
+    let currentPage = 1;
 
     console.log(`\nIniciando extração de ${totalVacancies} vagas...`);
 
-    for (let index = 0; index < totalVacancies; index++) {
-      try {
-        console.log(`\n[${index + 1}/${totalVacancies}] Processando vaga...`);
-        
-        // Primeiro extrair o status da vaga antes de abrir o modal
-        const statusVaga = await this.extractVacancyStatus(page, index);
-        console.log(`  Status da vaga: ${statusVaga}`);
-        
-        // Abrir modal e obter título esperado
-        const modalResult = await this.openVacancyModal(page, index);
-        if (!modalResult.success) {
-          console.warn(`⚠ Não foi possível abrir modal da vaga ${index + 1}, pulando...`);
-          errorCount++;
-          continue;
-        }
-
-        // CRÍTICO: Aguardar o conteúdo do modal mudar para a vaga correta
-        const contentChanged = await this.waitForModalContentChange(page, modalResult.expectedTitle);
-        if (!contentChanged) {
-          console.warn(`⚠ Conteúdo do modal não atualizou para vaga ${index + 1}, pulando...`);
-          await this.closeModal(page);
-          errorCount++;
-          continue;
-        }
-
-        const vacancyData = await this.extractVacancyDetails(page);
-        
-        // Adicionar o status aos dados da vaga
-        vacancyData.statusVaga = statusVaga;
-        
-        await this.closeModal(page);
-        
-        vacancies.push(vacancyData);
-        successCount++;
-        console.log(`✓ Vaga ${index + 1} extraída: ${vacancyData.cargo} (${statusVaga})`);
-
-        // Pequeno delay entre extrações para evitar sobrecarga
-        await this.sleep(500);
-
-      } catch (error) {
-        console.error(`✗ Erro ao extrair vaga ${index + 1}: ${error.message}`);
-        errorCount++;
-        
-        // Tentar fechar modal se estiver aberto
-        try {
-          await this.closeModal(page);
-        } catch (e) {
-          // Ignorar erro ao fechar
-        }
-        
-        // Continuar com a próxima vaga
-        continue;
+    while (true) {
+      // Contar quantas linhas existem na página atual
+      const rowsInPage = await page.evaluate(() => {
+        return document.querySelectorAll('tbody tr').length;
+      });
+      
+      console.log(`\n📄 Página ${currentPage}: ${rowsInPage} vagas visíveis`);
+      
+      if (rowsInPage === 0) {
+        console.log('Nenhuma vaga encontrada na página atual, finalizando...');
+        break;
       }
+
+      // Extrair vagas da página atual
+      for (let index = 0; index < rowsInPage; index++) {
+        try {
+          const vagaNum = vacancies.length + errorCount + 1;
+          console.log(`\n[${vagaNum}/${totalVacancies}] Processando vaga...`);
+          
+          // Verificar se a linha ainda existe (pode ter mudado)
+          const rowExists = await page.evaluate((idx) => {
+            return !!document.querySelector(`tbody tr:nth-child(${idx + 1})`);
+          }, index);
+          
+          if (!rowExists) {
+            console.warn(`⚠ Linha ${index + 1} não existe mais, pulando...`);
+            errorCount++;
+            continue;
+          }
+          
+          // Primeiro extrair o status da vaga antes de abrir o modal
+          const statusVaga = await this.extractVacancyStatus(page, index);
+          console.log(`  Status da vaga: ${statusVaga}`);
+          
+          // Abrir modal e obter título esperado
+          const modalResult = await this.openVacancyModal(page, index);
+          if (!modalResult.success) {
+            console.warn(`⚠ Não foi possível abrir modal da vaga ${vagaNum}, pulando...`);
+            errorCount++;
+            continue;
+          }
+
+          // CRÍTICO: Aguardar o conteúdo do modal mudar para a vaga correta
+          const contentChanged = await this.waitForModalContentChange(page, modalResult.expectedTitle);
+          if (!contentChanged) {
+            console.warn(`⚠ Conteúdo do modal não atualizou para vaga ${vagaNum}, pulando...`);
+            await this.closeModal(page);
+            errorCount++;
+            continue;
+          }
+
+          const vacancyData = await this.extractVacancyDetails(page);
+          
+          // Adicionar o status aos dados da vaga
+          vacancyData.statusVaga = statusVaga;
+          
+          await this.closeModal(page);
+          
+          vacancies.push(vacancyData);
+          successCount++;
+          console.log(`✓ Vaga ${vagaNum} extraída: ${vacancyData.cargo} (${statusVaga})`);
+
+          // Pequeno delay entre extrações para evitar sobrecarga
+          await this.sleep(500);
+
+        } catch (error) {
+          console.error(`✗ Erro ao extrair vaga: ${error.message}`);
+          errorCount++;
+          
+          // Tentar fechar modal se estiver aberto
+          try {
+            await this.closeModal(page);
+          } catch (e) {
+            // Ignorar erro ao fechar
+          }
+          
+          // Continuar com a próxima vaga
+          continue;
+        }
+      }
+
+      // Verificar se há próxima página
+      const hasNextPage = await this.goToNextPage(page);
+      if (!hasNextPage) {
+        console.log('\n📄 Não há mais páginas para processar');
+        break;
+      }
+      
+      currentPage++;
+      await this.sleep(2000); // Aguardar página carregar
     }
 
     console.log(`\n✓ Extração concluída: ${successCount} vagas extraídas, ${errorCount} erros`);
@@ -89,6 +127,60 @@ class VacancyExtractor {
     }
 
     return vacancies;
+  }
+
+  /**
+   * Navega para a próxima página de vagas
+   * @param {Page} page - Instância da página do Puppeteer
+   * @returns {Promise<boolean>} True se navegou para próxima página
+   */
+  async goToNextPage(page) {
+    try {
+      // Procurar botão de próxima página
+      const nextPageSelectors = [
+        'a[aria-label="Next"]',
+        'button[aria-label="Next"]',
+        '.pagination .next a',
+        '.pagination li:last-child a',
+        'a:has-text("Próximo")',
+        'a:has-text(">")',
+        '[class*="next"]',
+        '.page-item:last-child a'
+      ];
+
+      for (const selector of nextPageSelectors) {
+        try {
+          const nextButton = await page.$(selector);
+          if (nextButton) {
+            // Verificar se o botão está habilitado
+            const isDisabled = await page.evaluate((sel) => {
+              const btn = document.querySelector(sel);
+              if (!btn) return true;
+              return btn.classList.contains('disabled') || 
+                     btn.hasAttribute('disabled') ||
+                     btn.parentElement?.classList.contains('disabled');
+            }, selector);
+
+            if (!isDisabled) {
+              console.log(`\n📄 Navegando para próxima página usando: ${selector}`);
+              await page.click(selector);
+              await this.sleep(2000);
+              
+              // Aguardar tabela recarregar
+              await page.waitForSelector('tbody tr', { visible: true, timeout: 10000 });
+              return true;
+            }
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+
+      return false;
+    } catch (error) {
+      console.warn(`⚠ Erro ao navegar para próxima página: ${error.message}`);
+      return false;
+    }
   }
 
   /**
@@ -179,52 +271,106 @@ class VacancyExtractor {
       
       console.log(`  Título esperado: "${expectedTitle}"`);
       
+      // Fechar qualquer dropdown/modal que possa estar aberto
+      await page.keyboard.press('Escape');
+      await this.sleep(300);
+      
       // Clicar no ícone de menu (três pontos) da linha no tbody
-      const menuIconSelector = `tbody tr:nth-child(${rowNumber}) i.fas`;
-      console.log(`  Aguardando ícone de menu: ${menuIconSelector}`);
-      await page.waitForSelector(menuIconSelector, { visible: true, timeout: 5000 });
-      console.log(`  Clicando no ícone de menu...`);
-      await page.click(menuIconSelector);
+      const menuIconSelectors = [
+        `tbody tr:nth-child(${rowNumber}) i.fas`,
+        `tbody tr:nth-child(${rowNumber}) i.fa`,
+        `tbody tr:nth-child(${rowNumber}) button i`,
+        `tbody tr:nth-child(${rowNumber}) .dropdown-toggle`,
+        `tbody tr:nth-child(${rowNumber}) [data-toggle="dropdown"]`
+      ];
+      
+      let menuClicked = false;
+      for (const menuSelector of menuIconSelectors) {
+        try {
+          console.log(`  Tentando ícone de menu: ${menuSelector}`);
+          await page.waitForSelector(menuSelector, { visible: true, timeout: 2000 });
+          await page.click(menuSelector);
+          menuClicked = true;
+          console.log(`  ✓ Menu clicado`);
+          break;
+        } catch (e) {
+          continue;
+        }
+      }
+      
+      if (!menuClicked) {
+        throw new Error('Não foi possível clicar no ícone de menu');
+      }
       
       // Passo 2: Aguardar dropdown abrir
       console.log(`  Aguardando dropdown abrir...`);
-      await this.sleep(1000);
+      await this.sleep(800);
       
-      // Passo 3: Clicar em "Informações da vaga" usando seletor específico
-      // Baseado no exemplo: tr:nth-of-type(1) ul > div:nth-of-type(2) button
+      // Passo 3: Clicar em "Informações da vaga" - tentar múltiplas abordagens
       console.log(`  Procurando botão "Informações da vaga"...`);
-      const infoButtonSelector = `tbody tr:nth-child(${rowNumber}) ul > div:nth-of-type(2) button`;
       
-      try {
-        await page.waitForSelector(infoButtonSelector, { visible: true, timeout: 3000 });
-        console.log(`  Clicando em "Informações da vaga" com seletor: ${infoButtonSelector}`);
-        await page.click(infoButtonSelector);
-        console.log(`  Botão clicado, aguardando modal...`);
-      } catch (error) {
-        // Fallback: tentar com aria-label
-        console.log(`  Seletor específico falhou, tentando com aria-label...`);
-        const buttonInfo = await page.evaluate(() => {
-          const buttons = Array.from(document.querySelectorAll('button, a, li, [role="menuitem"]'));
-          
-          const infoButton = buttons.find(btn => {
-            const ariaLabel = btn.getAttribute('aria-label') || '';
-            const text = btn.textContent.trim();
-            return ariaLabel.includes('Informações da vaga') || 
-                   text === 'Informações da vaga' ||
-                   text.includes('Informações da vaga');
-          });
-          
-          if (infoButton) {
-            infoButton.click();
-            return { success: true };
-          }
-          return { success: false };
-        });
-        
-        if (!buttonInfo.success) {
-          throw new Error('Botão "Informações da vaga" não encontrado');
+      let infoClicked = false;
+      
+      // Abordagem 1: Seletor específico da linha
+      const infoButtonSelectors = [
+        `tbody tr:nth-child(${rowNumber}) ul > div:nth-of-type(2) button`,
+        `tbody tr:nth-child(${rowNumber}) .dropdown-menu button:nth-child(2)`,
+        `tbody tr:nth-child(${rowNumber}) .dropdown-menu li:nth-child(2)`,
+        `tbody tr:nth-child(${rowNumber}) [aria-label*="Informações"]`
+      ];
+      
+      for (const selector of infoButtonSelectors) {
+        try {
+          await page.waitForSelector(selector, { visible: true, timeout: 1500 });
+          console.log(`  Clicando em "Informações da vaga" com seletor: ${selector}`);
+          await page.click(selector);
+          infoClicked = true;
+          console.log(`  ✓ Botão clicado`);
+          break;
+        } catch (e) {
+          continue;
         }
       }
+      
+      // Abordagem 2: Buscar por texto
+      if (!infoClicked) {
+        console.log(`  Tentando encontrar por texto...`);
+        infoClicked = await page.evaluate(() => {
+          // Procurar em dropdowns visíveis
+          const dropdowns = document.querySelectorAll('.dropdown-menu.show, .dropdown-menu[style*="display: block"], ul.show');
+          
+          for (const dropdown of dropdowns) {
+            const buttons = dropdown.querySelectorAll('button, a, li');
+            for (const btn of buttons) {
+              const text = btn.textContent.trim().toLowerCase();
+              if (text.includes('informações') || text.includes('informacoes')) {
+                btn.click();
+                return true;
+              }
+            }
+          }
+          
+          // Fallback: procurar qualquer botão visível com esse texto
+          const allButtons = document.querySelectorAll('button, a, [role="menuitem"]');
+          for (const btn of allButtons) {
+            const text = btn.textContent.trim().toLowerCase();
+            const style = window.getComputedStyle(btn);
+            if ((text.includes('informações') || text.includes('informacoes')) && 
+                style.display !== 'none' && style.visibility !== 'hidden') {
+              btn.click();
+              return true;
+            }
+          }
+          
+          return false;
+        });
+      }
+      
+      if (!infoClicked) {
+        throw new Error('Botão "Informações da vaga" não encontrado');
+      }
+      
+      console.log(`  Aguardando modal...`);
       
       // Passo 4: Aguardar modal aparecer
       const modalSelectors = [
