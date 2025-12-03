@@ -66,24 +66,13 @@ class ScraperConfig {
    */
   getBrowserOptions() {
     const options = {
-      headless: this.config.scraper.headless ? 'new' : false,
+      headless: 'new',
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
-        '--disable-software-rasterizer',
-        '--disable-extensions',
-        '--disable-background-networking',
-        '--disable-default-apps',
-        '--disable-sync',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process',
-        '--disable-features=VizDisplayCompositor'
-      ],
-      timeout: 60000
+        '--disable-gpu'
+      ]
     };
 
     // Se estiver rodando em Docker, usar o Chromium instalado

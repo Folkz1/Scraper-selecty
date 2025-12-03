@@ -1,50 +1,29 @@
-# Use Node.js 18 Alpine
-FROM node:18-alpine
+# Usar imagem oficial do Puppeteer (mais estável que Alpine)
+FROM ghcr.io/puppeteer/puppeteer:21.5.0
 
-# Instalar Chromium e TODAS as dependências necessárias
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont \
-    font-noto-emoji \
-    dumb-init \
-    udev \
-    ttf-dejavu \
-    fontconfig
-
-# Configurar Puppeteer ANTES de instalar dependências
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_SKIP_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-ENV npm_config_puppeteer_skip_chromium_download=true
-
-# Configurações adicionais para o Chromium funcionar corretamente
-ENV CHROME_BIN=/usr/bin/chromium-browser
-ENV CHROME_PATH=/usr/lib/chromium/
+# Definir usuário root temporariamente para instalar dependências
+USER root
 
 # Diretório de trabalho
 WORKDIR /app
 
-# Copiar arquivos de configuração e dependências
-COPY package.json package-lock.json .npmrc ./
+# Copiar arquivos de configuração
+COPY package.json package-lock.json ./
 
-# Instalar dependências com configurações otimizadas
-RUN npm config set fetch-retry-maxtimeout 60000 && \
-    npm config set fetch-retry-mintimeout 10000 && \
-    npm install --omit=dev --prefer-offline && \
-    npm cache clean --force
+# Instalar dependências
+RUN npm ci --omit=dev
 
 # Copiar código da aplicação
 COPY . .
 
+# Mudar ownership para o usuário pptruser
+RUN chown -R pptruser:pptruser /app
+
+# Voltar para usuário não-root
+USER pptruser
+
 # Expor porta
 EXPOSE 3000
-
-# Usar dumb-init para gerenciar processos corretamente
-ENTRYPOINT ["dumb-init", "--"]
 
 # Comando de inicialização
 CMD ["node", "api/server.js"]
