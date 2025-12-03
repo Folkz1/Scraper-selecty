@@ -22,9 +22,16 @@ class SelectyNavigator {
       try {
         console.log(`Navegando para lista de vagas (tentativa ${attempt}/${this.maxRetries})...`);
         
+        // Usar 'domcontentloaded' ao invés de 'networkidle2' para ser mais rápido
         await page.goto(this.vacancyUrl, {
-          waitUntil: 'networkidle2',
-          timeout: this.timeout
+          waitUntil: 'domcontentloaded',
+          timeout: 60000 // 60 segundos para navegação
+        });
+
+        // Aguardar a tabela aparecer como confirmação de que a página carregou
+        await page.waitForSelector('table, tbody, .table', {
+          visible: true,
+          timeout: 30000
         });
 
         console.log('✓ Navegação para lista de vagas bem-sucedida');

@@ -18,8 +18,8 @@ class SelectyAuthenticator {
       
       // Navega para a URL de login
       await page.goto(credentials.loginUrl, {
-        waitUntil: 'networkidle2',
-        timeout: this.timeout
+        waitUntil: 'domcontentloaded',
+        timeout: 60000
       });
 
       console.log('Aguardando campos de login...');
@@ -75,10 +75,10 @@ class SelectyAuthenticator {
         console.log('Login submetido via Enter');
       }
 
-      // Aguarda navegação após login
+      // Aguarda navegação após login (com timeout maior)
       await page.waitForNavigation({
-        waitUntil: 'networkidle2',
-        timeout: this.timeout
+        waitUntil: 'domcontentloaded',
+        timeout: 60000
       }).catch(() => {
         // Ignora timeout de navegação, vamos validar de outra forma
         console.log('Timeout de navegação ignorado, validando login...');
