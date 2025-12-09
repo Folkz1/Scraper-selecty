@@ -24,6 +24,7 @@ class VacancyFormatter {
 Cargo: ${vacancy.cargo}
 Empresa: ${vacancy.empresa}
 Status: ${vacancy.statusVaga}
+Selecionador Responsável: ${vacancy.selecionadorResponsavel || '—'}
 Salário: ${vacancy.salario}
 Jornada: ${vacancy.jornada}
 Tipo de contrato: ${vacancy.tipoContrato}

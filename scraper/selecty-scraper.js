@@ -46,9 +46,10 @@ class SelectyScraper {
 
   /**
    * Executa o scraper completo
+   * @param {number} maxVacancies - Limite máximo de vagas a extrair (0 = sem limite)
    * @returns {Promise<Object>} Resultado da execução
    */
-  async run() {
+  async run(maxVacancies = 0) {
     const startTime = Date.now();
     
     try {
@@ -75,7 +76,7 @@ class SelectyScraper {
       // Extração
       console.log('\n=== FASE 3: EXTRAÇÃO DE DADOS ===');
       const extractor = new VacancyExtractor(this.config);
-      const vacancies = await extractor.extractAllVacancies(this.page, totalVacancies);
+      const vacancies = await extractor.extractAllVacancies(this.page, totalVacancies, maxVacancies);
       console.log(`✓ Extração concluída - ${vacancies.length} vagas extraídas`);
 
       // Formatação

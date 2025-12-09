@@ -1,0 +1,62 @@
+{
+  "success": true,
+  "timestamp": "2025-12-09T21:23:37.795Z",
+  "totalVacancies": 3,
+  "vacancies": [
+    {
+      "cargo": "Operador de Caixa",
+      "empresa": "Jucélio da Silva",
+      "salario": "R$ 2.200,00",
+      "jornada": "À combinar",
+      "tipoContrato": "CLT (Efetivo)",
+      "beneficios": "Vale transporte.\nOutros benefícios a combinar.",
+      "descricaoAtividades": "Operar o caixa;\nAuxiliar na organização do ambiente.",
+      "experienciasQualificacoes": "Experiência na função.",
+      "escolaridade": "—",
+      "nivelAtuacao": "Operacional",
+      "areaAtuacao": "Administração Comerc...",
+      "local": "Rua Octavio Benjamim Moreira 100, Rainha, Araquari - SC",
+      "observacoes": "Não fumante.",
+      "statusVaga": "Vaga em processo seletivo",
+      "selecionadorResponsavel": "Ygor",
+      "formattedText": "━━━━━━━━━RESUMO DA VAGA━━━━━━━━━\nCargo: Operador de Caixa\nEmpresa: Jucélio da Silva\nStatus: Vaga em processo seletivo\nSelecionador Responsável: Ygor\nSalário: R$ 2.200,00\nJornada: À combinar\nTipo de contrato: CLT (Efetivo)\nBenefícios: Vale transporte.\nOutros benefícios a combinar.\n\nDescrição das atividades:\nOperar o caixa;\nAuxiliar na organização do ambiente.\n\nExperiências e qualificações:\nExperiência na função.\n\nEscolaridade: —\nNível de atuação: Operacional\nÁrea de atuação: Administração Comerc...\nLocal: Rua Octavio Benjamim Moreira 100, Rainha, Araquari - SC\nObservações: Não fumante.\n━━━━━━━━━"
+    },
+    {
+      "cargo": "Auxiliar de Cozinha",
+      "empresa": "Jucélio da Silva",
+      "salario": "R$ 2.200,00",
+      "jornada": "À combinar",
+      "tipoContrato": "CLT (Efetivo)",
+      "beneficios": "Vale transporte;\nOutros benefícios à combinar.",
+      "descricaoAtividades": "Manipulação de alimentos, limpeza, e organização do ambiente.",
+      "experienciasQualificacoes": "Carteira de manipulação de alimentos.",
+      "escolaridade": "—",
+      "nivelAtuacao": "Operacional",
+      "areaAtuacao": "Alimentos e Bebidas",
+      "local": "Rua Octavio Benjamim Moreira 100, Rainha, Araquari - SC",
+      "observacoes": "Não fumante.",
+      "statusVaga": "Vaga em processo seletivo",
+      "selecionadorResponsavel": "Ygor",
+      "formattedText": "━━━━━━━━━RESUMO DA VAGA━━━━━━━━━\nCargo: Auxiliar de Cozinha\nEmpresa: Jucélio da Silva\nStatus: Vaga em processo seletivo\nSelecionador Responsável: Ygor\nSalário: R$ 2.200,00\nJornada: À combinar\nTipo de contrato: CLT (Efetivo)\nBenefícios: Vale transporte;\nOutros benefícios à combinar.\n\nDescrição das atividades:\nManipulação de alimentos, limpeza, e organização do ambiente.\n\nExperiências e qualificações:\nCarteira de manipulação de alimentos.\n\nEscolaridade: —\nNível de atuação: Operacional\nÁrea de atuação: Alimentos e Bebidas\nLocal: Rua Octavio Benjamim Moreira 100, Rainha, Araquari - SC\nObservações: Não fumante.\n━━━━━━━━━"
+    },
+    {
+      "cargo": "Atendente de Confeitaria",
+      "empresa": "Doce Encanto",
+      "salario": "R$ 1.900,00",
+      "jornada": "Segunda a sábado das 10:00 às 17:35",
+      "tipoContrato": "CLT (Efetivo)",
+      "beneficios": "Vale Transporte;\nAjuda de custo na alimentação de R$ 150,00;\nSeguro de vida;\nAlimentação no local.",
+      "descricaoAtividades": "Atendimento ao cliente;\nProdução de café passado e expresso;\nLevar bandeja;\nLimpeza dos ambientes.",
+      "experienciasQualificacoes": "Excelente comunicação, deve ser capaz de se expressar de forma clara e acolhedora;\nPontualidade, valorizamos a responsabilidade e comprometimento com os horários de trabalho;\nBoa apresentação pessoal;\nConhecimento na produção de café expresso e atendimento a cliente.",
+      "escolaridade": "—",
+      "nivelAtuacao": "Operacional",
+      "areaAtuacao": "Atend. a cliente",
+      "local": "Rua Benjamin Constant 258, América, Joinville - SC",
+      "observacoes": "-",
+      "statusVaga": "Vaga em processo seletivo",
+      "selecionadorResponsavel": "Ygor",
+      "formattedText": "━━━━━━━━━RESUMO DA VAGA━━━━━━━━━\nCargo: Atendente de Confeitaria\nEmpresa: Doce Encanto\nStatus: Vaga em processo seletivo\nSelecionador Responsável: Ygor\nSalário: R$ 1.900,00\nJornada: Segunda a sábado das 10:00 às 17:35\nTipo de contrato: CLT (Efetivo)\nBenefícios: Vale Transporte;\nAjuda de custo na alimentação de R$ 150,00;\nSeguro de vida;\nAlimentação no local.\n\nDescrição das atividades:\nAtendimento ao cliente;\nProdução de café passado e expresso;\nLevar bandeja;\nLimpeza dos ambientes.\n\nExperiências e qualificações:\nExcelente comunicação, deve ser capaz de se expressar de forma clara e acolhedora;\nPontualidade, valorizamos a responsabilidade e comprometimento com os horários de trabalho;\nBoa apresentação pessoal;\nConhecimento na produção de café expresso e atendimento a cliente.\n\nEscolaridade: —\nNível de atuação: Operacional\nÁrea de atuação: Atend. a cliente\nLocal: Rua Benjamin Constant 258, América, Joinville - SC\nObservações: -\n━━━━━━━━━"
+    }
+  ],
+  "executionTime": "122.62s"
+}
