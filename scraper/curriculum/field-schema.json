@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Selecty Curriculum Input",
+  "description": "Schema para IA enviar dados de candidato para automação de currículo",
+  
+  "definitions": {
+    "nivel": {
+      "type": "string",
+      "enum": [
+        "Jovem Aprendiz", "Estagiário", "Operacional", "Auxiliar", "Assistente",
+        "Técnico", "Trainee", "Especialista", "Analista", "Coordenador",
+        "Supervisor", "Gerência", "Diretoria", "Presidência/C-Level"
+      ]
+    },
+    "porte": {
+      "type": "string",
+      "enum": [
+        "Atividade autônoma",
+        "Empresa de grande porte",
+        "Empresa de médio porte", 
+        "Empresa de pequeno porte",
+        "Micro-empresa"
+      ]
+    },
+    "genero": {
+      "type": "string",
+      "enum": ["F", "M", "u"],
+      "description": "F=Feminino, M=Masculino, u=Não informar"
+    },
+    "area_interesse": {
+      "type": "string",
+      "enum": [
+        "Administração Comercial/Vendas", "Administração de Empresas", "Administração Pública",
+        "Advocacia/Jurídica", "Agrícola", "Agronomia", "Alimentos e Bebidas",
+        "Arquitetura/Urbanismo", "Arquivologia", "Artes Cênicas", "Artes Gráficas",
+        "Artes Plásticas", "Atend. a cliente", "Auditoria", "Automação Industrial",
+        "Automobilística", "Bancos", "Biblioteconomia", "Biologia/Ciências Biológicas",
+        "Biomedicina", "Biotecnologia/Bioprocessos", "Cinema", "Comércio Exterior",
+        "Compras", "Comunicação", "Confecção", "Construção Civil", "Contabilidade",
+        "Controladoria", "Culinária/Gastronomia", "Cultura", "Desenho Industrial",
+        "Desenvolvimento de Negócios", "Design de Interiores", "Design Gráfico",
+        "Ecologia/Meio Ambiente", "Economia", "Educação", "Eletroeletrônica",
+        "Enfermagem", "Engenharia Civil", "Engenharia de Produção", "Engenharia Mecânica",
+        "Entretenimento", "Esportes", "Estética", "Eventos", "Farmácia", "Finanças",
+        "Fiscal", "Física", "Fisioterapia", "Fonoaudiologia", "Gestão Empresarial",
+        "Gestão de Projetos", "História", "Hotelaria", "Industrial", "Informática/T.I.",
+        "Inovação", "Internet", "Jornalismo", "Letras", "Logística", "Marketing",
+        "Mecatrônica", "Medicina/Hospitalar", "Mineração", "Moda", "Música", "Nutrição",
+        "Odontologia", "Psicologia", "Qualidade", "Química", "Recursos Humanos",
+        "Secretariado", "Segurança e Saúde no Trabalho", "Seguros", "Serviços Gerais",
+        "Suprimentos", "Telecomunicações", "Transporte Terrestre", "Turismo",
+        "Vendas", "Vendas - Varejo", "Veterinária", "Web Design"
+      ]
+    },
+    "segmento": {
+      "type": "string",
+      "enum": [
+        "Agricultura", "Água e Saneamento", "Alimentos", "Aviação", "Biotecnologia",
+        "Comércio Eletrônico", "Comunicação", "Construção Civil", "Consultoria",
+        "Educação", "Energia", "Entretenimento", "Eventos", "Farmácia",
+        "Financeiro/Bancário", "Governo", "Hotelaria", "Imobiliário", "Indústria",
+        "Logística/Transporte", "Marketing/Publicidade", "Mineração", "ONGs",
+        "Pesquisa", "Petroquímica", "Restaurantes", "Saúde", "Seguros",
+        "Serviços", "Siderurgia", "Tecnologia e Informática", "Telecomunicações",
+        "Têxtil", "Turismo", "Varejo"
+      ]
+    },
+    "estados": {
+      "type": "string",
+      "enum": [
+        "Acre", "Alagoas", "Amapá", "Amazonas", "Bahia", "Ceará",
+        "Distrito Federal", "Espírito Santo", "Goiás", "Maranhão",
+        "Mato Grosso", "Mato Grosso do Sul", "Minas Gerais", "Pará",
+        "Paraíba", "Paraná", "Pernambuco", "Piauí", "Rio de Janeiro",
+        "Rio Grande do Norte", "Rio Grande do Sul", "Rondônia", "Roraima",
+        "Santa Catarina", "São Paulo", "Sergipe", "Tocantins"
+      ]
+    }
+  },
+
+  "type": "object",
+  "required": ["dados_pessoais", "contato"],
+  
+  "properties": {
+    "dados_pessoais": {
+      "type": "object",
+      "required": ["nome"],
+      "properties": {
+        "nome": { "type": "string", "minLength": 3, "description": "Nome completo do candidato" },
+        "cpf": { "type": ["string", "null"], "pattern": "^[0-9]{11}$", "description": "CPF sem pontos/traços ou null para gerar" },
+        "data_nascimento": { "type": "string", "pattern": "^[0-9]{2}/[0-9]{2}/[0-9]{4}$", "description": "Formato DD/MM/YYYY" },
+        "genero": { "$ref": "#/definitions/genero" }
+      }
+    },
+    
+    "contato": {
+      "type": "object",
+      "required": ["celular", "email"],
+      "properties": {
+        "telefone_fixo": { "type": "string", "description": "Formato (XX) XXXX-XXXX" },
+        "celular": { "type": "string", "description": "Formato (XX) XXXXX-XXXX" },
+        "email": { "type": "string", "format": "email" }
+      }
+    },
+    
+    "endereco": {
+      "type": "object",
+      "properties": {
+        "cep": { "type": "string", "pattern": "^[0-9]{5}-?[0-9]{3}$" },
+        "logradouro": { "type": "string" },
+        "numero": { "type": "string" },
+        "complemento": { "type": "string" },
+        "bairro": { "type": "string" },
+        "estado": { "$ref": "#/definitions/estados" },
+        "cidade": { "type": "string" }
+      }
+    },
+    
+    "perfil_profissional": {
+      "type": "object",
+      "properties": {
+        "cargo_pretendido": { "type": "string", "description": "Texto de busca AJAX" },
+        "salario_pretendido": { "type": "integer", "minimum": 0 },
+        "area_interesse": { "$ref": "#/definitions/area_interesse" },
+        "nivel": { "$ref": "#/definitions/nivel" }
+      }
+    },
+    
+    "experiencias": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["empresa"],
+        "properties": {
+          "empresa": { "type": "string", "minLength": 2 },
+          "segmento": { "$ref": "#/definitions/segmento" },
+          "porte": { "$ref": "#/definitions/porte" },
+          "cargo": { "type": "string", "description": "Texto de busca AJAX ou novo cargo" },
+          "ultimo_salario": { "type": "integer", "minimum": 0 },
+          "emprego_atual": { "type": "boolean", "default": false },
+          "atividades": { "type": "string", "maxLength": 2000 }
+        }
+      }
+    }
+  }
+}

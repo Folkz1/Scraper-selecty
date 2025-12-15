@@ -1,96 +1,118 @@
 /**
- * Script para testar a API do scraper
+ * Script de Teste da API de Currículo
  * Execute: node test-api.js
  */
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
-const API_KEY = process.env.API_KEY || 'your-secure-api-key-here';
+const http = require('http');
 
-async function testAPI() {
-  console.log('🧪 Testando API do Scraper Selecty');
-  console.log('='.repeat(50));
-  
-  try {
-    // 1. Teste Health Check
-    console.log('\n1. Testando Health Check...');
-    const healthResponse = await fetch(`${API_BASE_URL}/api/health`);
-    const healthData = await healthResponse.json();
-    console.log('✅ Health Check:', healthData);
-
-    // 2. Teste Status (sem auth - deve falhar)
-    console.log('\n2. Testando Status sem autenticação...');
-    try {
-      const statusResponse = await fetch(`${API_BASE_URL}/api/scrape/status`);
-      console.log('❌ Deveria ter falhado, mas retornou:', statusResponse.status);
-    } catch (error) {
-      console.log('✅ Falhou como esperado (sem auth)');
+// Dados COMPLETOS para teste - todos os campos obrigatórios preenchidos
+const candidatoCompleto = {
+  dados_pessoais: {
+    nome: "João Carlos Silva Santos",
+    cpf: null, // Será gerado automaticamente
+    data_nascimento: "25/08/1990",
+    genero: "M"
+  },
+  contato: {
+    telefone_fixo: "(11) 3333-4444",
+    celular: "(11) 99876-5432",
+    email: "joao.carlos.teste@email.com"
+  },
+  endereco: {
+    cep: "01310-100",
+    logradouro: "Av Paulista",
+    numero: "1500",
+    complemento: "Sala 101",
+    bairro: "Bela Vista",
+    estado: "SP", // Usar SIGLA (SP, RJ, MG, etc)
+    cidade: "Sao Paulo"
+  },
+  perfil_educacional: [
+    {
+      formacao: "Ensino Médio",
+      instituicao: "Escola Estadual 31 de Janeiro",
+      data_inicio: "01/02/2005",
+      data_conclusao: "15/12/2007",
+      turno: "Manhã",
+      situacao: "c" // c=Concluído, s=Cursando, p=Suspenso
     }
-
-    // 3. Teste Status (com auth)
-    console.log('\n3. Testando Status com autenticação...');
-    const statusResponse = await fetch(`${API_BASE_URL}/api/scrape/status`, {
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    const statusData = await statusResponse.json();
-    console.log('✅ Status:', statusData);
-
-    // 4. Teste Last Result
-    console.log('\n4. Testando último resultado...');
-    const lastResponse = await fetch(`${API_BASE_URL}/api/scrape/last`, {
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (lastResponse.status === 404) {
-      console.log('ℹ️ Nenhum resultado em cache ainda');
-    } else {
-      const lastData = await lastResponse.json();
-      console.log('✅ Último resultado:', {
-        success: lastData.success,
-        timestamp: lastData.timestamp,
-        extractedVacancies: lastData.extractedVacancies
-      });
+  ],
+  perfil_profissional: {
+    cargo_pretendido: "Auxiliar Administrativo",
+    salario_pretendido: 2500,
+    area_interesse: "Administra",
+    nivel: "Auxiliar"
+  },
+  experiencias: [
+    {
+      empresa: "Empresa Teste LTDA",
+      segmento: "Tecnologia",
+      porte: "medio",
+      cargo: "Auxiliar Administrativo",
+      ultimo_salario: 2000,
+      emprego_atual: false,
+      atividades: "Suporte administrativo, controle de documentos, atendimento ao cliente"
     }
+  ]
+};
 
-    // 5. Teste execução do scraper (opcional - comentado por ser demorado)
-    console.log('\n5. Execução do scraper (descomente para testar):');
-    console.log('// Descomente as linhas abaixo para testar a execução completa');
-    /*
-    console.log('Executando scraper... (isso pode demorar alguns minutos)');
-    const scrapeResponse = await fetch(`${API_BASE_URL}/api/scrape`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    const scrapeData = await scrapeResponse.json();
-    console.log('✅ Scraper executado:', {
-      success: scrapeData.success,
-      extractedVacancies: scrapeData.extractedVacancies,
-      totalVacancies: scrapeData.totalVacancies,
-      executionTime: scrapeData.executionTime
-    });
-    */
+console.log('='.repeat(60));
+console.log('🧪 TESTE DA API DE CURRÍCULO SELECTY');
+console.log('='.repeat(60));
+console.log('\n📋 Enviando dados completos:\n');
+console.log(JSON.stringify(candidatoCompleto, null, 2));
 
-    console.log('\n' + '='.repeat(50));
-    console.log('✅ Todos os testes da API passaram!');
-    console.log('\nPara testar a execução completa do scraper:');
-    console.log('1. Descomente a seção 5 neste arquivo');
-    console.log('2. Configure suas credenciais no .env');
-    console.log('3. Execute novamente: node test-api.js');
+const data = JSON.stringify(candidatoCompleto);
 
-  } catch (error) {
-    console.error('\n❌ Erro durante os testes:', error.message);
-    process.exit(1);
+const options = {
+  hostname: 'localhost',
+  port: 3001,
+  path: '/api/curriculum/create',
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Content-Length': Buffer.byteLength(data)
   }
-}
+};
 
-// Executar testes
-testAPI();
+console.log('\n⏳ Enviando request para API...\n');
+
+const req = http.request(options, (res) => {
+  let responseData = '';
+  
+  res.on('data', (chunk) => {
+    responseData += chunk;
+  });
+  
+  res.on('end', () => {
+    console.log('='.repeat(60));
+    console.log('📊 RESPOSTA DA API:');
+    console.log('='.repeat(60));
+    console.log(`Status: ${res.statusCode}`);
+    
+    try {
+      const json = JSON.parse(responseData);
+      console.log(JSON.stringify(json, null, 2));
+      
+      if (json.success) {
+        console.log('\n✅ SUCESSO! Currículo criado.');
+        console.log(`🔗 URL: ${json.url}`);
+      } else {
+        console.log('\n❌ FALHOU');
+        console.log(`❗ Erro: ${json.error}`);
+      }
+    } catch (e) {
+      console.log('Resposta:', responseData);
+    }
+    console.log('='.repeat(60));
+  });
+});
+
+req.on('error', (e) => {
+  console.error(`❌ Erro de conexão: ${e.message}`);
+  console.log('\n💡 Certifique-se de que o servidor está rodando:');
+  console.log('   node api-server.js');
+});
+
+req.write(data);
+req.end();

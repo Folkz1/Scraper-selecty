@@ -1,0 +1,264 @@
+{
+  "version": "1.0",
+  "description": "Definições de campos do formulário de currículo Selecty para preenchimento via IA",
+  "sections": {
+    "dados_pessoais": {
+      "nome": {
+        "field": "cv_name",
+        "type": "text",
+        "required": true,
+        "description": "Nome completo do candidato",
+        "example": "João Silva Santos"
+      },
+      "cpf": {
+        "field": "cpf",
+        "type": "text",
+        "required": true,
+        "format": "###.###.###-##",
+        "description": "CPF válido (11 dígitos)",
+        "example": "123.456.789-09",
+        "validation": "mod11"
+      },
+      "data_nascimento": {
+        "field": "date",
+        "type": "date",
+        "required": false,
+        "format": "DD/MM/YYYY",
+        "description": "Data de nascimento",
+        "example": "01/01/1990"
+      },
+      "genero": {
+        "field": "gender",
+        "type": "radio",
+        "required": false,
+        "options": ["F", "M", "u"],
+        "labels": {
+          "F": "Mulher",
+          "M": "Homem",
+          "u": "Não informar"
+        }
+      }
+    },
+    "contato": {
+      "telefone_fixo": {
+        "field": "tel_fixo",
+        "type": "phone",
+        "required": false,
+        "format": "(##) ####-####",
+        "example": "(11) 3333-4444"
+      },
+      "celular": {
+        "field": "celular",
+        "type": "phone",
+        "required": false,
+        "format": "(##) #####-####",
+        "example": "(11) 99999-8888"
+      },
+      "email": {
+        "field": "email",
+        "type": "email",
+        "required": false,
+        "example": "candidato@email.com"
+      }
+    },
+    "endereco": {
+      "cep": {
+        "field": "cep",
+        "type": "text",
+        "required": false,
+        "format": "#####-###",
+        "description": "CEP - busca automática de endereço",
+        "example": "01310-100"
+      },
+      "logradouro": { "field": "street", "type": "text", "required": false },
+      "numero": { "field": "number", "type": "text", "required": false },
+      "complemento": { "field": "complement", "type": "text", "required": false },
+      "bairro": { "field": "neighborhood", "type": "text", "required": false },
+      "estado": {
+        "field": "state",
+        "type": "select2",
+        "required": true,
+        "description": "UF do Brasil",
+        "options": ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"]
+      },
+      "cidade": {
+        "field": "city",
+        "type": "select2_ajax",
+        "required": true,
+        "depends_on": "state",
+        "description": "Cidade - carregada dinamicamente após selecionar estado"
+      }
+    },
+    "perfil_profissional": {
+      "cargo_pretendido": {
+        "field": "intended_occupation",
+        "type": "select2_ajax",
+        "required": true,
+        "description": "Busca por cargo desejado - digite para pesquisar",
+        "example_search": "Auxiliar"
+      },
+      "salario_pretendido": {
+        "field": "intended_salary",
+        "type": "number",
+        "required": false,
+        "format": "decimal",
+        "example": "3500.00"
+      },
+      "areas_interesse": {
+        "field": "interest_area",
+        "type": "select2_multi",
+        "required": true,
+        "description": "Áreas de interesse profissional",
+        "example_search": "Administração"
+      },
+      "nivel_interesse": {
+        "field": "level_select",
+        "type": "select2",
+        "required": true,
+        "description": "Nível profissional desejado"
+      }
+    },
+    "experiencia_profissional": {
+      "_type": "popup_modal",
+      "_add_button": "+ Adicionar Experiência",
+      "_save_button": "Salvar",
+      "fields": {
+        "empresa": {
+          "field": "company_name",
+          "type": "text",
+          "required": true,
+          "example": "Empresa ABC LTDA"
+        },
+        "segmento": {
+          "field": "segment",
+          "type": "select2",
+          "required": false,
+          "options": [
+            "Agricultura", "Agricultura e Pecuária", "Alimentos", "Ambientação e Design de interiores",
+            "Arquitetura", "Artes", "Assistência Médica", "Associações", "Atividade Odontológica",
+            "Auditoria", "Automotivo", "Autopeças", "Aviação", "Bancos", "Bebidas",
+            "Beleza e Estética", "Biológicas", "Brindes", "Brinquedos", "Calçados e Couro",
+            "Cama, mesa e banho", "Comércio Atacadista", "Comércio Exterior", "Comércio Varejista",
+            "Comunicação e Marketing", "Comunicação Visual e Design", "Concessionária",
+            "Construção Civil", "Consultoria", "Contabilidade", "Corretoras", "Distribuidores",
+            "Educação", "Eletrodomésticos", "Embalagens", "Energia", "Engenharia",
+            "Ensino e Pesquisa", "Entretenimento – Cultura e Lazer", "Esporte", "Farmacêutico",
+            "Ferramentas", "Finanças", "Franquias", "Fumo", "Governo", "Gráfica",
+            "Higiene e Limpeza", "Hoteleiro", "Imobiliário", "Imprensa e Comunicação",
+            "Indústria", "Internet", "Jurídico", "Lavanderia", "Madeira",
+            "Máquinas e Equipamentos", "Material de construção", "Material de escritório",
+            "Materiais Elétricos", "Material eletrônico (componentes eletrônicos)", "Mecânica",
+            "Meio Ambiente", "Metalúrgico, Siderúrgico", "Mineração", "Móveis e Decoração",
+            "Não Metálicos", "Ótica", "Papel e Celulose", "Pecuária", "Perfumaria e Cosméticos",
+            "Petroquímica", "Pintura", "Plástico e Borracha", "Promoção de Vendas", "Publicidade",
+            "Química", "Recursos Humanos", "Religião", "Saúde, Hospitalar e Laboratorial",
+            "Securitização de Créditos", "Seguradoras e Previdência Privada", "Serviços (outros)",
+            "Serviços Cartorários", "Serviços Públicos", "Tecnologia e Informática",
+            "Telecomunicações", "Telemarketing / Call Center", "Terceiro setor / ONG", "Têxtil",
+            "Trabalho Doméstico", "Transporte Aéreo", "Transporte e Logística", "Turismo",
+            "Utilidades Domésticas", "Vendas", "Vestuário", "Veterinária", "Indústria Naval"
+          ]
+        },
+        "porte_empresa": {
+          "field": "company_size",
+          "type": "select2",
+          "required": false,
+          "options": [
+            "Atividade autônoma",
+            "Empresa de grande porte",
+            "Empresa de médio porte",
+            "Empresa de pequeno porte",
+            "Micro-empresa"
+          ]
+        },
+        "cargo": {
+          "field": "occupation_id",
+          "type": "select2_ajax",
+          "required": true,
+          "description": "Cargo ocupado - busca AJAX por texto",
+          "example_search": "Auxiliar Administrativo"
+        },
+        "ultimo_salario": {
+          "field": "last_salary",
+          "type": "number",
+          "required": false,
+          "example": "2500.00"
+        },
+        "data_inicio": {
+          "field": "start_date",
+          "type": "date",
+          "required": false,
+          "format": "DD/MM/YYYY"
+        },
+        "data_fim": {
+          "field": "end_date",
+          "type": "date",
+          "required": false,
+          "format": "DD/MM/YYYY"
+        },
+        "emprego_atual": {
+          "field": "is_current",
+          "type": "toggle",
+          "options": ["Não", "Sim"],
+          "description": "Se marcado Sim, data_fim é ignorada"
+        },
+        "atividades": {
+          "field": "activities",
+          "type": "textarea",
+          "required": false,
+          "description": "Descrição das atividades realizadas"
+        }
+      }
+    },
+    "perfil_educacional": {
+      "_type": "inline_form",
+      "_add_button": "+ Incluir Escolaridade",
+      "fields": {
+        "formacao": {
+          "field": "education",
+          "type": "select",
+          "required": false,
+          "options": ["Ensino Fundamental", "Ensino Médio", "Superior Incompleto", "Superior Completo", "Pós-Graduação", "Mestrado", "Doutorado"]
+        },
+        "instituicao": {
+          "field": "institute",
+          "type": "text",
+          "required": false,
+          "example": "Universidade de São Paulo"
+        },
+        "curso": {
+          "field": "course",
+          "type": "text",
+          "required": false,
+          "example": "Administração de Empresas"
+        },
+        "data_inicio": {
+          "field": "edu_start_date",
+          "type": "date",
+          "format": "DD/MM/YYYY"
+        },
+        "data_conclusao": {
+          "field": "edu_end_date",
+          "type": "date",
+          "format": "DD/MM/YYYY"
+        },
+        "turno": {
+          "field": "shift",
+          "type": "select",
+          "options": ["Manhã", "Tarde", "Noite", "Integral"]
+        },
+        "situacao": {
+          "field": "status",
+          "type": "radio",
+          "options": ["Cursando", "Concluído", "Suspenso"]
+        }
+      }
+    }
+  },
+  "api_endpoint": "https://selecty.app/curriculum/save",
+  "method": "POST",
+  "authentication": {
+    "type": "session",
+    "requires": ["csrfToken", "cookies"]
+  }
+}
