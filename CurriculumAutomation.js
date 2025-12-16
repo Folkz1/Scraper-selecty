@@ -149,75 +149,140 @@ class CurriculumAutomation {
     // CEP - preenche e espera busca automática
     if (data.cep) {
       this.log('  -> CEP');
-      await this.page.click('#cep', { clickCount: 3 }).catch(() => {});
+      await this.page.evaluate(() => {
+        const cep = document.querySelector('#cep');
+        if (cep) { cep.value = ''; cep.focus(); }
+      });
       await this.page.type('#cep', data.cep.replace(/\D/g, ''));
-      await this.delay(3000); // Aguardar busca automática de endereço
+      await this.delay(4000); // Aguardar busca automática de endereço
     }
     
-    // Logradouro
+    // Logradouro - limpar e preencher com page.type
     if (data.logradouro) {
       this.log('  -> Logradouro');
       await this.page.click('#street', { clickCount: 3 }).catch(() => {});
-      await this.page.type('#street', data.logradouro).catch(() => {});
+      await this.page.type('#street', data.logradouro);
     }
     
-    // Número
+    // Número - limpar e preencher com page.type
     if (data.numero) {
       this.log('  -> Número');
       await this.page.click('#number', { clickCount: 3 }).catch(() => {});
-      await this.page.type('#number', data.numero).catch(() => {});
+      await this.page.type('#number', String(data.numero));
     }
     
     // Complemento
     if (data.complemento) {
       this.log('  -> Complemento');
       await this.page.click('#complement', { clickCount: 3 }).catch(() => {});
-      await this.page.type('#complement', data.complemento).catch(() => {});
+      await this.page.type('#complement', data.complemento);
     }
     
-    // Bairro
+    // Bairro - limpar e preencher com page.type
     if (data.bairro) {
       this.log('  -> Bairro');
       await this.page.click('#neighborhood', { clickCount: 3 }).catch(() => {});
-      await this.page.type('#neighborhood', data.bairro).catch(() => {});
+      await this.page.type('#neighborhood', data.bairro);
     }
     
     // Estado - Select2 (USA SIGLAS: SP, RJ, MG, etc)
     if (data.estado) {
       this.log('  -> Estado');
-      // Clicar no container do estado
-      await this.page.evaluate(() => {
-        const stateSelect = document.querySelector('#state');
-        if (stateSelect) {
-          const container = stateSelect.closest('.form-group')?.querySelector('.select2-selection') ||
-                           document.querySelector('[aria-labelledby*="state"]');
-          if (container) container.click();
+      
+      // Função para selecionar estado
+      const selectEstado = async () => {
+        try {
+          await this.page.click('span[id*="select2-state"][id*="container"]');
+        } catch (e) {
+          await this.page.click('#state + .select2-container .select2-selection').catch(() => {});
         }
+        await this.delay(700);
+        await this.page.waitForSelector('.select2-results__options', { timeout: 3000 }).catch(() => {});
+        await this.page.keyboard.type(data.estado);
+        await this.delay(1000);
+        await this.page.keyboard.press('Enter');
+        await this.delay(1000);
+      };
+      
+      await selectEstado();
+      
+      // Verificar se estado foi selecionado
+      const estadoSelecionado = await this.page.evaluate(() => {
+        const container = document.querySelector('span[id*="select2-state"][id*="container"]');
+        const texto = container?.textContent?.trim() || '';
+        return texto.length === 2 && texto !== '--'; // Sigla de 2 letras
       });
-      await this.delay(500);
-      // Digitar a sigla do estado (ex: SP, RJ, MG)
-      await this.page.keyboard.type(data.estado);
-      await this.delay(800);
-      await this.page.keyboard.press('Enter');
-      await this.delay(2500); // Aguardar carregamento AJAX das cidades
+      
+      if (!estadoSelecionado) {
+        this.log('  -> Retry Estado...');
+        await this.delay(500);
+        await selectEstado();
+      }
+      
+      await this.delay(3000); // Aguardar carregamento AJAX das cidades
     }
     
     // Cidade - Select2 AJAX (carrega após selecionar estado)
     if (data.cidade) {
       this.log('  -> Cidade');
-      await this.page.evaluate(() => {
+      
+      // Aguardar o spinner/loading desaparecer e cidades carregarem
+      await this.page.waitForFunction(() => {
         const citySelect = document.querySelector('#city');
-        if (citySelect) {
-          const container = citySelect.closest('.form-group')?.querySelector('.select2-selection') ||
-                           document.querySelector('[aria-labelledby*="city"]');
-          if (container) container.click();
+        // Verificar se não está disabled e se tem opções
+        return citySelect && !citySelect.disabled;
+      }, { timeout: 10000 }).catch(() => {});
+      
+      await this.delay(1000);
+      
+      // Função para selecionar cidade
+      const selectCidade = async () => {
+        try {
+          await this.page.click('span[id*="select2-city"][id*="container"]');
+        } catch (e) {
+          await this.page.click('#city + .select2-container .select2-selection').catch(() => {});
         }
+        await this.delay(700);
+        
+        // Aguardar dropdown abrir e ter resultados (não "carregando")
+        await this.page.waitForFunction(() => {
+          const results = document.querySelectorAll('.select2-results__option');
+          if (results.length === 0) return false;
+          // Verificar se não está mostrando "carregando" ou "Searching"
+          const firstResult = results[0]?.textContent?.toLowerCase() || '';
+          return !firstResult.includes('carregando') && !firstResult.includes('searching') && !firstResult.includes('loading');
+        }, { timeout: 5000 }).catch(() => {});
+        
+        await this.page.keyboard.type(data.cidade);
+        await this.delay(2500);
+        
+        // Aguardar resultados do AJAX
+        await this.page.waitForFunction(() => {
+          const results = document.querySelectorAll('.select2-results__option');
+          if (results.length === 0) return false;
+          const firstResult = results[0]?.textContent?.toLowerCase() || '';
+          return !firstResult.includes('carregando') && !firstResult.includes('searching');
+        }, { timeout: 5000 }).catch(() => {});
+        
+        await this.page.keyboard.press('ArrowDown');
+        await this.delay(200);
+        await this.page.keyboard.press('Enter');
+      };
+      
+      await selectCidade();
+      
+      // Verificar se cidade foi selecionada
+      const cidadeSelecionada = await this.page.evaluate(() => {
+        const container = document.querySelector('span[id*="select2-city"][id*="container"]');
+        const texto = container?.textContent?.trim() || '';
+        return texto.length > 3 && !texto.includes('Selecione');
       });
-      await this.delay(500);
-      await this.page.keyboard.type(data.cidade);
-      await this.delay(2000);
-      await this.page.keyboard.press('ArrowDown');
-      await this.page.keyboard.press('Enter');
+      
+      if (!cidadeSelecionada) {
+        this.log('  -> Retry Cidade...');
+        await this.delay(1000);
+        await selectCidade();
+      }
     }
   }
 
@@ -569,24 +634,57 @@ class CurriculumAutomation {
   }
 
   // ========== SALVAR CURRÍCULO ==========
-  async save() {
-    this.log('Salvando currículo...');
-    
-    // Scroll até o botão salvar
-    await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await this.delay(1000);
-    
-    await this.page.evaluate(() => {
-      const btns = Array.from(document.querySelectorAll('button'));
-      const saveBtn = btns.find(b => b.textContent.includes('Salvar') && !b.closest('.modal'));
-      if (saveBtn) saveBtn.click();
-    });
-    
-    await this.delay(5000);
-    
-    const url = this.page.url();
-    return { success: !url.includes('/create'), url };
+async save() {
+  this.log('Salvando currículo...');
+  
+  // Scroll até o botão salvar
+  await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await this.delay(1000);
+  
+  // Capturar URL antes de salvar
+  const urlBefore = this.page.url();
+  
+  await this.page.evaluate(() => {
+    const btns = Array.from(document.querySelectorAll('button'));
+    const saveBtn = btns.find(b => b.textContent.includes('Salvar') && !b.closest('.modal'));
+    if (saveBtn) saveBtn.click();
+  });
+  
+  await this.delay(8000); // Aguardar mais tempo para processamento
+  
+  const urlAfter = this.page.url();
+  
+  // Verificar se URL mudou para edição
+  if (urlAfter.includes('/edit/') || urlAfter.includes('/view/')) {
+    return { success: true, url: urlAfter, message: 'Currículo criado - URL mudou para edição' };
   }
+  
+  // Verificar se há mensagem de sucesso na página
+  const hasSuccess = await this.page.evaluate(() => {
+    // Procurar mensagens de sucesso
+    const successSelectors = ['.toast-success', '.alert-success', '.swal2-success', '.toastr-success'];
+    for (const sel of successSelectors) {
+      const el = document.querySelector(sel);
+      if (el && el.offsetParent !== null) return true;
+    }
+    // Verificar se URL mudou para lista/index
+    if (window.location.href.includes('/index')) return true;
+    return false;
+  });
+  
+  if (hasSuccess) {
+    return { success: true, url: urlAfter, message: 'Currículo criado - mensagem de sucesso detectada' };
+  }
+  
+  // Se ainda está na mesma URL, fazer screenshot e retornar status
+  await this.page.screenshot({ path: 'curriculum-save-result.png', fullPage: true });
+  
+  return { 
+    success: urlAfter !== urlBefore, 
+    url: urlAfter,
+    message: urlAfter === urlBefore ? 'URL não mudou - verificar manualmente' : 'URL modificada'
+  };
+}  
 
   // ========== MÉTODO PRINCIPAL ==========
   async createCurriculum(candidateData) {

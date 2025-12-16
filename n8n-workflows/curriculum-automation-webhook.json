@@ -26,13 +26,24 @@
     },
     {
       "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Transformar dados do formato do webhook para o formato da API\nconst inputData = $input.first().json.body || $input.first().json;\n\n// Log para debug\nconsole.log('Input recebido:', JSON.stringify(inputData, null, 2));\n\n// Função para extrair dados no formato correto\nfunction extractCurriculumData(data) {\n  // Se já está no formato simples (nome, cpf, email na raiz)\n  if (data.nome && data.cpf && data.email) {\n    return {\n      nome: data.nome,\n      cpf: data.cpf,\n      email: data.email,\n      dataNascimento: data.dataNascimento || data.data_nascimento,\n      genero: data.genero,\n      telefoneFixo: data.telefoneFixo || data.telefone_fixo,\n      celular: data.celular,\n      emailSecundario: data.emailSecundario || data.email_secundario,\n      site: data.site,\n      cep: data.cep,\n      rua: data.rua || data.logradouro,\n      numero: data.numero,\n      bairro: data.bairro,\n      pais: data.pais || 'Brasil',\n      estado: data.estado,\n      cidade: data.cidade,\n      referencias: data.referencias\n    };\n  }\n  \n  // Se está no formato complexo (dados_pessoais, contato, etc)\n  const pessoais = data.dados_pessoais || {};\n  const contato = data.contato || {};\n  const endereco = data.endereco || {};\n  \n  return {\n    nome: pessoais.nome || data.nome,\n    cpf: pessoais.cpf || data.cpf,\n    email: contato.email || data.email,\n    dataNascimento: pessoais.data_nascimento || pessoais.dataNascimento,\n    genero: pessoais.genero,\n    telefoneFixo: contato.telefone_fixo || contato.telefoneFixo,\n    celular: contato.celular,\n    emailSecundario: contato.email_secundario || contato.emailSecundario,\n    site: contato.site,\n    cep: endereco.cep,\n    rua: endereco.logradouro || endereco.rua,\n    numero: endereco.numero,\n    bairro: endereco.bairro,\n    pais: endereco.pais || 'Brasil',\n    estado: endereco.estado,\n    cidade: endereco.cidade,\n    referencias: data.referencias\n  };\n}\n\nconst curriculumData = extractCurriculumData(inputData);\n\n// Validação\nconst errors = [];\nif (!curriculumData.nome) errors.push('nome');\nif (!curriculumData.cpf) errors.push('cpf');\nif (!curriculumData.email) errors.push('email');\n\nif (errors.length > 0) {\n  throw new Error(`Campos obrigatórios faltando: ${errors.join(', ')}`);\n}\n\nconsole.log('Dados transformados:', JSON.stringify(curriculumData, null, 2));\n\nreturn [{ json: { curriculumData, callbackUrl: inputData.callbackUrl } }];"
+      },
+      "id": "transform-data",
+      "name": "Transform Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 200]
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "https://scrapers-scraper-selecty.pjlnku.easypanel.host/api/curriculum/create",
+        "url": "https://scrapers-scraper-selecty.pjlnku.easypanel.host/api/curriculum",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "jsonBody": "={{ JSON.stringify($json.curriculumData) }}",
         "options": {
           "timeout": 300000,
           "response": {
@@ -46,7 +57,7 @@
       "name": "Execute Curriculum Scraper",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [250, 200],
+      "position": [450, 200],
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 5000,
@@ -86,7 +97,7 @@
       "name": "Check Result",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [500, 200]
+      "position": [680, 200]
     },
     {
       "parameters": {
@@ -124,7 +135,7 @@
       "name": "Prepare Success Response",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [750, 100]
+      "position": [930, 100]
     },
     {
       "parameters": {
@@ -156,12 +167,72 @@
       "name": "Prepare Error Response",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [750, 300]
+      "position": [930, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-callback",
+              "leftValue": "={{ $('Transform Data').item.json.callbackUrl }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-callback-success",
+      "name": "Has Callback?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1160, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-callback",
+              "leftValue": "={{ $('Transform Data').item.json.callbackUrl }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-callback-error",
+      "name": "Has Callback? (Error)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1160, 300]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Webhook Trigger').item.json.body?.callbackUrl || '' }}",
+        "url": "={{ $('Transform Data').item.json.callbackUrl }}",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
@@ -173,13 +244,13 @@
       "name": "Callback Success",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1000, 100],
+      "position": [1390, 50],
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Webhook Trigger').item.json.body?.callbackUrl || '' }}",
+        "url": "={{ $('Transform Data').item.json.callbackUrl }}",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
@@ -191,7 +262,7 @@
       "name": "Callback Error",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1000, 300],
+      "position": [1390, 250],
       "onError": "continueRegularOutput"
     },
     {
@@ -206,7 +277,7 @@
       "name": "Respond Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1250, 100]
+      "position": [1620, 100]
     },
     {
       "parameters": {
@@ -220,11 +291,22 @@
       "name": "Respond Error",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1250, 300]
+      "position": [1620, 300]
     }
   ],
   "connections": {
     "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Transform Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform Data": {
       "main": [
         [
           {
@@ -275,7 +357,7 @@
       "main": [
         [
           {
-            "node": "Callback Success",
+            "node": "Has Callback?",
             "type": "main",
             "index": 0
           }
@@ -286,7 +368,43 @@
       "main": [
         [
           {
+            "node": "Has Callback? (Error)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Callback?": {
+      "main": [
+        [
+          {
+            "node": "Callback Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Callback? (Error)": {
+      "main": [
+        [
+          {
             "node": "Callback Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
             "type": "main",
             "index": 0
           }

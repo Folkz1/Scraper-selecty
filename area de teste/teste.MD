@@ -646,3 +646,592 @@ page.setDefaultTimeout(timeout);
 console.error(err);
 process.exit(1);
 });
+
+<span class="select2-results"><ul class="select2-results__options" role="listbox" id="select2-state-h8-results" aria-expanded="true" aria-hidden="false"><li class="select2-results__option" id="select2-state-h8-result-rm19---" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-rm19---">
+-- </li><li class="select2-results__option select2-results__option--highlighted" id="select2-state-h8-result-231d-AC" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-231d-AC">
+AC </li><li class="select2-results__option" id="select2-state-h8-result-dmxy-AL" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-dmxy-AL">
+AL </li><li class="select2-results__option" id="select2-state-h8-result-f8ut-AP" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-f8ut-AP">
+AP </li><li class="select2-results__option" id="select2-state-h8-result-1axm-AM" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-1axm-AM">
+AM </li><li class="select2-results__option" id="select2-state-h8-result-47fc-BA" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-47fc-BA">
+BA </li><li class="select2-results__option" id="select2-state-h8-result-ghq6-CE" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-ghq6-CE">
+CE </li><li class="select2-results__option" id="select2-state-h8-result-3oi8-DF" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-3oi8-DF">
+DF </li><li class="select2-results__option" id="select2-state-h8-result-478h-ES" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-478h-ES">
+ES </li><li class="select2-results__option" id="select2-state-h8-result-5q59-GO" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-5q59-GO">
+GO </li><li class="select2-results__option" id="select2-state-h8-result-w2r4-MA" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-w2r4-MA">
+MA </li><li class="select2-results__option" id="select2-state-h8-result-ajxs-MT" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-ajxs-MT">
+MT </li><li class="select2-results__option" id="select2-state-h8-result-ogmi-MS" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-ogmi-MS">
+MS </li><li class="select2-results__option" id="select2-state-h8-result-nm1z-MG" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-nm1z-MG">
+MG </li><li class="select2-results__option" id="select2-state-h8-result-sd3e-PA" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-sd3e-PA">
+PA </li><li class="select2-results__option" id="select2-state-h8-result-zt2g-PB" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-zt2g-PB">
+PB </li><li class="select2-results__option" id="select2-state-h8-result-yj6s-PE" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-yj6s-PE">
+PE </li><li class="select2-results__option" id="select2-state-h8-result-e1ti-PI" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-e1ti-PI">
+PI </li><li class="select2-results__option" id="select2-state-h8-result-mmnc-PR" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-mmnc-PR">
+PR </li><li class="select2-results__option" id="select2-state-h8-result-veuw-RJ" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-veuw-RJ">
+RJ </li><li class="select2-results__option" id="select2-state-h8-result-7jge-RN" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-7jge-RN">
+RN </li><li class="select2-results__option" id="select2-state-h8-result-331b-RO" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-331b-RO">
+RO </li><li class="select2-results__option" id="select2-state-h8-result-uvi0-RR" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-uvi0-RR">
+RR </li><li class="select2-results__option" id="select2-state-h8-result-s5of-RS" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-s5of-RS">
+RS </li><li class="select2-results__option" id="select2-state-h8-result-53ck-SC" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-53ck-SC">
+SC </li><li class="select2-results__option" id="select2-state-h8-result-rqji-SE" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-rqji-SE">
+SE </li><li class="select2-results__option" id="select2-state-h8-result-v26y-SP" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-v26y-SP">
+SP </li><li class="select2-results__option" id="select2-state-h8-result-zgjj-TO" role="option" aria-selected="false" data-select2-id="select2-state-h8-result-zgjj-TO">
+TO </li></ul></span>
+
+                            const puppeteer = require('puppeteer'); // v20.7.4 or later
+
+(async () => {
+const browser = await puppeteer.launch({headless: 'new'});
+const page = await browser.newPage();
+const timeout = 5000;
+page.setDefaultTimeout(timeout);
+
+    {
+        const targetPage = page;
+        await targetPage.setViewport({
+            width: 1355,
+            height: 900
+        })
+    }
+    {
+        const targetPage = page;
+        const promises = [];
+        const startWaitingForEvents = () => {
+            promises.push(targetPage.waitForNavigation());
+        }
+        startWaitingForEvents();
+        await targetPage.goto('https://selecty.app/curriculum/create-cv/complete/0');
+        await Promise.all(promises);
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(Selecione uma data)'),
+            targetPage.locator('div.mb-lg-0 input'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div/input)'),
+            targetPage.locator(':scope >>> div.mb-lg-0 input')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 90,
+                y: 0.921875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('div:nth-of-type(4) tr:nth-of-type(1) > td:nth-of-type(2)'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div[2]/table/tbody/tr[1]/td[2])'),
+            targetPage.locator(':scope >>> div:nth-of-type(4) tr:nth-of-type(1) > td:nth-of-type(2)')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 20,
+                y: 11.421875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(Selecione uma data)'),
+            targetPage.locator('div.mb-lg-0 input'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div/input)'),
+            targetPage.locator(':scope >>> div.mb-lg-0 input')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 108,
+                y: 17.921875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(«)'),
+            targetPage.locator('div:nth-of-type(4) a.mx-icon-last-year'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div[1]/a[1])'),
+            targetPage.locator(':scope >>> div:nth-of-type(4) a.mx-icon-last-year')
+        ])
+            .setTimeout(timeout)
+            .click({
+              count: 2,
+              offset: {
+                x: 5,
+                y: 17.421875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(«)'),
+            targetPage.locator('div:nth-of-type(4) a.mx-icon-last-year'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div[1]/a[1])'),
+            targetPage.locator(':scope >>> div:nth-of-type(4) a.mx-icon-last-year')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 5,
+                y: 17.421875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(«)'),
+            targetPage.locator('div:nth-of-type(4) a.mx-icon-last-year'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div[1]/a[1])'),
+            targetPage.locator(':scope >>> div:nth-of-type(4) a.mx-icon-last-year')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 5,
+                y: 17.421875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(«)'),
+            targetPage.locator('div:nth-of-type(4) a.mx-icon-last-year'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div[1]/a[1])'),
+            targetPage.locator(':scope >>> div:nth-of-type(4) a.mx-icon-last-year')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 5,
+                y: 17.421875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(«)'),
+            targetPage.locator('div:nth-of-type(4) a.mx-icon-last-year'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div[1]/a[1])'),
+            targetPage.locator(':scope >>> div:nth-of-type(4) a.mx-icon-last-year')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 5,
+                y: 17.421875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(«)'),
+            targetPage.locator('div:nth-of-type(4) a.mx-icon-last-year'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div[1]/a[1])'),
+            targetPage.locator(':scope >>> div:nth-of-type(4) a.mx-icon-last-year')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 5,
+                y: 17.421875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(«)'),
+            targetPage.locator('div:nth-of-type(4) a.mx-icon-last-year'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div[1]/a[1])'),
+            targetPage.locator(':scope >>> div:nth-of-type(4) a.mx-icon-last-year')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 5,
+                y: 17.421875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(«)'),
+            targetPage.locator('div:nth-of-type(4) a.mx-icon-last-year'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div[1]/a[1])'),
+            targetPage.locator(':scope >>> div:nth-of-type(4) a.mx-icon-last-year')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 5,
+                y: 17.421875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(«)'),
+            targetPage.locator('div:nth-of-type(4) a.mx-icon-last-year'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div[1]/a[1])'),
+            targetPage.locator(':scope >>> div:nth-of-type(4) a.mx-icon-last-year')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 5,
+                y: 17.421875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(«)'),
+            targetPage.locator('div:nth-of-type(4) a.mx-icon-last-year'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div[1]/a[1])'),
+            targetPage.locator(':scope >>> div:nth-of-type(4) a.mx-icon-last-year')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 5,
+                y: 17.421875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(Selecione uma data)'),
+            targetPage.locator('div.mb-lg-0 input'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div/input)'),
+            targetPage.locator(':scope >>> div.mb-lg-0 input')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 12,
+                y: 11.921875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('div.card div:nth-of-type(1) > div.card'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"collapse_personal_data\\"]/div[1]/div[2])'),
+            targetPage.locator(':scope >>> div.card div:nth-of-type(1) > div.card')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 7.5,
+                y: 214.421875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(Selecione uma data)'),
+            targetPage.locator('div.mb-lg-0 input'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div/input)'),
+            targetPage.locator(':scope >>> div.mb-lg-0 input')
+        ])
+            .setTimeout(timeout)
+            .fill('12/10/1999');
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('div.card div:nth-of-type(1) > div.card'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"collapse_personal_data\\"]/div[1]/div[2])'),
+            targetPage.locator(':scope >>> div.card div:nth-of-type(1) > div.card')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 1.5,
+                y: 189.421875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(Selecione uma data)'),
+            targetPage.locator('div.mb-lg-0 input'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"birth_date\\"]/div/input)'),
+            targetPage.locator(':scope >>> div.mb-lg-0 input')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 107,
+                y: 12.921875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('#collapse_personal_data > div:nth-of-type(2) > div'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"collapse_personal_data\\"]/div[2]/div)'),
+            targetPage.locator(':scope >>> #collapse_personal_data > div:nth-of-type(2) > div')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 389.5,
+                y: 16.125,
+              },
+            });
+    }
+
+    await browser.close();
+
+})().catch(err => {
+console.error(err);
+process.exit(1);
+});
+
+Perfil eduucacional
+
+![alt text](image-10.png)
+
+formação acadêmica
+![alt text](image-11.png)
+
+<ul class="select2-results__options" role="listbox" id="select2-education_level_id-results" aria-expanded="true" aria-hidden="false"><li class="select2-results__option select2-results__option--highlighted" role="option" aria-selected="false" data-select2-id="3588">Ensino Fundamental</li><li class="select2-results__option" role="option" aria-selected="false" data-select2-id="3589">Ensino Médio</li><li class="select2-results__option" role="option" aria-selected="false" data-select2-id="3590">Técnico/Profissionalizante</li><li class="select2-results__option" role="option" aria-selected="false" data-select2-id="3591">Graduação</li><li class="select2-results__option" role="option" aria-selected="false" data-select2-id="3592">Licenciatura</li><li class="select2-results__option" role="option" aria-selected="false" data-select2-id="3593">Pós-Graduação</li><li class="select2-results__option" role="option" aria-selected="false" data-select2-id="3594">Pós-Graduação - MBA</li><li class="select2-results__option" role="option" aria-selected="false" data-select2-id="3595">Mestrado</li><li class="select2-results__option" role="option" aria-selected="false" data-select2-id="3596">Doutorado</li><li class="select2-results__option" role="option" aria-selected="false" data-select2-id="3597">Pós-Doutorado</li><li class="select2-results__option" role="option" aria-selected="false" data-select2-id="3598">Não alfabetizado</li></ul>
+
+turno
+![alt text](image-12.png)
+
+<span class="select2-results"><ul class="select2-results__options" role="listbox" id="select2-form_education_time-results" aria-expanded="true" aria-hidden="false"><li class="select2-results__option select2-results__option--highlighted" id="select2-form_education_time-result-f6dv-m" role="option" aria-selected="false" data-select2-id="select2-form_education_time-result-f6dv-m">Manhã</li><li class="select2-results__option" id="select2-form_education_time-result-nee0-a" role="option" aria-selected="false" data-select2-id="select2-form_education_time-result-nee0-a">Tarde</li><li class="select2-results__option" id="select2-form_education_time-result-qgdy-n" role="option" aria-selected="false" data-select2-id="select2-form_education_time-result-qgdy-n">Noite</li></ul></span>
+
+situação
+
+![alt text](image-13.png)
+
+<div id="btnradiosstudying" role="radiogroup" tabindex="-1" class="btn-group-toggle btn-group bv-no-focus-ring"><label class="btn btn-secondary"><input type="radio" name="radio_group_field_studying" autocomplete="off" class="" value="s" data-parsley-multiple="radio_group_field_studying" id="__BVID__109">Cursando</label> <label class="btn btn-secondary"><input type="radio" name="radio_group_field_studying" autocomplete="off" class="" value="c" data-parsley-multiple="radio_group_field_studying" id="__BVID__110">Concluído</label> <label class="btn btn-secondary"><input type="radio" name="radio_group_field_studying" autocomplete="off" class="" value="p" data-parsley-multiple="radio_group_field_studying" id="__BVID__111">Suspenso</label></div>
+
+script executando e clicando em incluir escolaridade:
+
+const puppeteer = require('puppeteer'); // v20.7.4 or later
+
+(async () => {
+const browser = await puppeteer.launch({headless: 'new'});
+const page = await browser.newPage();
+const timeout = 5000;
+page.setDefaultTimeout(timeout);
+
+    {
+        const targetPage = page;
+        await targetPage.setViewport({
+            width: 1355,
+            height: 900
+        })
+    }
+    {
+        const targetPage = page;
+        const promises = [];
+        const startWaitingForEvents = () => {
+            promises.push(targetPage.waitForNavigation());
+        }
+        startWaitingForEvents();
+        await targetPage.goto('https://selecty.app/curriculum/create-cv/complete/0');
+        await Promise.all(promises);
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(Ensino Médio[role=\\"combobox\\"])'),
+            targetPage.locator('#collapse_formation > div:nth-of-type(1) div.col-lg-5 span.selection > span'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"collapse_formation\\"]/div[1]/div/div/div[1]/div[1]/span/span[1]/span)'),
+            targetPage.locator(':scope >>> #collapse_formation > div:nth-of-type(1) div.col-lg-5 span.selection > span')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 167,
+                y: 21.359375,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(Instituição de ensino)'),
+            targetPage.locator('#institute'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"institute\\"])'),
+            targetPage.locator(':scope >>> #institute')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 125,
+                y: 6.015625,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(Instituição de ensino)'),
+            targetPage.locator('#institute'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"institute\\"])'),
+            targetPage.locator(':scope >>> #institute')
+        ])
+            .setTimeout(timeout)
+            .fill('31 de janeiro');
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('#collapse_formation > div:nth-of-type(1) div.my-2 > div:nth-of-type(3) input'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"start\\"]/div/input)'),
+            targetPage.locator(':scope >>> #collapse_formation > div:nth-of-type(1) div.my-2 > div:nth-of-type(3) input')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 79.5,
+                y: 14.015625,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('#collapse_formation > div:nth-of-type(1) div.my-2 > div:nth-of-type(3) input'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"start\\"]/div/input)'),
+            targetPage.locator(':scope >>> #collapse_formation > div:nth-of-type(1) div.my-2 > div:nth-of-type(3) input')
+        ])
+            .setTimeout(timeout)
+            .fill('10/06/2016');
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('#collapse_formation > div:nth-of-type(1) div:nth-of-type(4) input'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"conclude\\"]/div/input)'),
+            targetPage.locator(':scope >>> #collapse_formation > div:nth-of-type(1) div:nth-of-type(4) input')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 95,
+                y: 18.015625,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('#collapse_formation > div:nth-of-type(1) div:nth-of-type(4) input'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"conclude\\"]/div/input)'),
+            targetPage.locator(':scope >>> #collapse_formation > div:nth-of-type(1) div:nth-of-type(4) input')
+        ])
+            .setTimeout(timeout)
+            .fill('10/06/2020');
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('#collapse_formation > div:nth-of-type(1) div.col-lg-3'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"collapse_formation\\"]/div[1]/div/div/div[1]/div[5])'),
+            targetPage.locator(':scope >>> #collapse_formation > div:nth-of-type(1) div.col-lg-3'),
+            targetPage.locator('::-p-text(Turno Selecione)')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 108,
+                y: 23.015625,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('#select2-form_education_time-container > span'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"select2-form_education_time-container\\"]/span)'),
+            targetPage.locator(':scope >>> #select2-form_education_time-container > span')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 91,
+                y: 9.59375,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('#collapse_formation > div:nth-of-type(1) label:nth-of-type(2)'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"btnradiosstudying\\"]/label[2])'),
+            targetPage.locator(':scope >>> #collapse_formation > div:nth-of-type(1) label:nth-of-type(2)')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 60.46875,
+                y: 18.171875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria( Incluir Escolaridade)'),
+            targetPage.locator('#schoolingIncludeBtn'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"schoolingIncludeBtn\\"])'),
+            targetPage.locator(':scope >>> #schoolingIncludeBtn'),
+            targetPage.locator('::-p-text(Incluir Escolaridade)')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 116.96875,
+                y: 15.171875,
+              },
+            });
+    }
+    {
+        const targetPage = page;
+        await puppeteer.Locator.race([
+            targetPage.locator('::-p-aria(Ensino Médio)'),
+            targetPage.locator('#app td:nth-of-type(1)'),
+            targetPage.locator('::-p-xpath(//*[@id=\\"__BVID__112\\"]/tbody/tr/td[1])'),
+            targetPage.locator(':scope >>> #app td:nth-of-type(1)')
+        ])
+            .setTimeout(timeout)
+            .click({
+              offset: {
+                x: 87,
+                y: 29.421875,
+              },
+            });
+    }
+
+    await browser.close();
+
+})().catch(err => {
+console.error(err);
+process.exit(1);
+});
+
+visualização depois de criado
+![alt text](image-14.png)
