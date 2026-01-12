@@ -297,23 +297,25 @@ class VacancyExtractor {
         // Buscar especificamente no tbody para evitar pegar o thead
         const row = document.querySelector(`tbody tr:nth-child(${rowNum})`);
         if (!row) {
-          return 'Selecionador não encontrado';
+          return "Selecionador não encontrado";
         }
 
         // Abordagem 1: Buscar pelo <small> que contém "Selecionador responsável:"
         // e pegar o <strong> que está no próximo span
-        const smallElements = row.querySelectorAll('small');
+        const smallElements = row.querySelectorAll("small");
         for (const small of smallElements) {
-          if (small.textContent.toLowerCase().includes('selecionador')) {
+          if (small.textContent.toLowerCase().includes("selecionador")) {
             // O nome está no <strong> dentro do <span> que vem após o <small>
             const parentDiv = small.parentElement;
             if (parentDiv) {
-              const strongElement = parentDiv.querySelector('strong');
+              const strongElement = parentDiv.querySelector("strong");
               if (strongElement) {
                 return strongElement.textContent.trim();
               }
               // Fallback: buscar span com cor específica
-              const spanElement = parentDiv.querySelector('span[style*="color"]');
+              const spanElement = parentDiv.querySelector(
+                'span[style*="color"]'
+              );
               if (spanElement) {
                 return spanElement.textContent.trim();
               }
@@ -322,10 +324,13 @@ class VacancyExtractor {
         }
 
         // Abordagem 2: Buscar diretamente por divs com "Selecionador responsável"
-        const allDivs = row.querySelectorAll('div');
+        const allDivs = row.querySelectorAll("div");
         for (const div of allDivs) {
-          const html = div.innerHTML || '';
-          if (html.toLowerCase().includes('selecionador') && html.includes('<strong>')) {
+          const html = div.innerHTML || "";
+          if (
+            html.toLowerCase().includes("selecionador") &&
+            html.includes("<strong>")
+          ) {
             const strongMatch = html.match(/<strong>([^<]+)<\/strong>/i);
             if (strongMatch) {
               return strongMatch[1].trim();
@@ -334,28 +339,37 @@ class VacancyExtractor {
         }
 
         // Abordagem 3: Regex no texto completo da linha
-        const fullText = row.innerText || '';
+        const fullText = row.innerText || "";
         // Procurar padrão: "Selecionador responsável:" seguido do nome na próxima linha
-        const lines = fullText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const lines = fullText
+          .split("\n")
+          .map((l) => l.trim())
+          .filter((l) => l.length > 0);
         for (let i = 0; i < lines.length; i++) {
-          if (lines[i].toLowerCase().includes('selecionador')) {
+          if (lines[i].toLowerCase().includes("selecionador")) {
             // O nome geralmente está na linha seguinte
-            if (lines[i + 1] && lines[i + 1].length > 0 && lines[i + 1].length < 50) {
+            if (
+              lines[i + 1] &&
+              lines[i + 1].length > 0 &&
+              lines[i + 1].length < 50
+            ) {
               return lines[i + 1];
             }
           }
         }
 
         // Se não encontrar nenhum selecionador, retornar padrão
-        return 'Não informado';
+        return "Não informado";
       }, rowNumber);
 
       return selecionador;
     } catch (error) {
       console.warn(
-        `⚠ Erro ao extrair selecionador da vaga ${rowIndex + 1}: ${error.message}`
+        `⚠ Erro ao extrair selecionador da vaga ${rowIndex + 1}: ${
+          error.message
+        }`
       );
-      return 'Erro ao extrair selecionador';
+      return "Erro ao extrair selecionador";
     }
   }
 
@@ -424,161 +438,167 @@ class VacancyExtractor {
 
       // Clicar no ícone de menu (três pontos) da linha no tbody
       const menuIconSelectors = [
+        // Seletores baseados no script do usuário (Bootstrap-Vue) - Padrão Exato
+        `tbody tr:nth-child(${rowNumber}) [id*="__BVID__"][id*="__BV_toggle_"]`,
+        `tbody tr:nth-child(${rowNumber}) [id*="__BVID__"] .dropdown-toggle`,
+        `tbody tr:nth-child(${rowNumber}) [id*="__BVID__"] i.fas`,
+        
+        // Seletores genéricos e de backup
+        `tbody tr:nth-child(${rowNumber}) .dropdown-toggle`,
+        `tbody tr:nth-child(${rowNumber}) [data-toggle="dropdown"]`,
         `tbody tr:nth-child(${rowNumber}) i.fas.fa-ellipsis-v`,
         `tbody tr:nth-child(${rowNumber}) i.fas`,
         `tbody tr:nth-child(${rowNumber}) i.fa`,
-        `tbody tr:nth-child(${rowNumber}) i.fa-ellipsis-v`,
         `tbody tr:nth-child(${rowNumber}) button i`,
-        `tbody tr:nth-child(${rowNumber}) .dropdown-toggle`,
-        `tbody tr:nth-child(${rowNumber}) [data-toggle="dropdown"]`,
         `tbody tr:nth-child(${rowNumber}) button.btn-link`,
         `tbody tr:nth-child(${rowNumber}) td:last-child button`,
-        `tbody tr:nth-child(${rowNumber}) td:last-child i`,
+        `tbody tr:nth-child(${rowNumber}) button:has(i)`,
+        `tbody tr:nth-child(${rowNumber}) a:has(i)`,
       ];
 
-      let menuClicked = false;
-      for (const menuSelector of menuIconSelectors) {
-        try {
-          const exists = await page.$(menuSelector);
-          if (exists) {
-            console.log(`  Tentando ícone de menu: ${menuSelector}`);
-            await page.click(menuSelector);
-            menuClicked = true;
-            console.log(`  ✓ Menu clicado`);
-            break;
-          }
-        } catch (e) {
-          continue;
-        }
-      }
+      // Passo 2: Tentar abrir o dropdown (com retries)
+      let dropdownOpen = false;
+      console.log(`  Tentando abrir menu de ações...`);
 
-      if (!menuClicked) {
-        throw new Error("Não foi possível clicar no ícone de menu");
-      }
-
-      // Passo 2: Aguardar dropdown abrir
-      console.log(`  Aguardando dropdown abrir...`);
-      await this.sleep(1000);
-
-      // Verificar se dropdown abriu
-      const dropdownOpen = await page.evaluate((rowNum) => {
-        const row = document.querySelector(`tbody tr:nth-child(${rowNum})`);
-        if (!row) return false;
-        const dropdown = row.querySelector(
-          '.dropdown-menu.show, .dropdown-menu[style*="display: block"], ul.show, .show .dropdown-menu'
-        );
-        return !!dropdown;
-      }, rowNumber);
-
-      if (!dropdownOpen) {
-        console.log(`  ⚠ Dropdown não abriu, tentando clicar novamente...`);
-        // Tentar clicar novamente no menu
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        // Tentar clicar usando os seletores
         for (const menuSelector of menuIconSelectors) {
           try {
-            await page.click(menuSelector);
-            await this.sleep(1000);
-            break;
+            const element = await page.$(menuSelector);
+            if (element) {
+              // Tenta clicar via Puppeteer
+              await element.click({ delay: 100 }).catch(() => {});
+
+              // Verifica imediatamente se abriu
+              await this.sleep(500);
+              dropdownOpen = await this.checkDropdownOpen(page, rowNumber);
+              if (dropdownOpen) {
+                console.log(
+                  `  ✓ Menu clicado (via Puppeteer) e dropdown aberto`
+                );
+                break;
+              }
+
+              // Se não abriu, tenta click via JavaScript (ignora listeners de overlay)
+              await page.evaluate((sel) => {
+                const el = document.querySelector(sel);
+                if (el) el.click();
+              }, menuSelector);
+
+              await this.sleep(500);
+              dropdownOpen = await this.checkDropdownOpen(page, rowNumber);
+              if (dropdownOpen) {
+                console.log(`  ✓ Menu clicado (via JS) e dropdown aberto`);
+                break;
+              }
+            }
           } catch (e) {
             continue;
           }
         }
+
+        if (dropdownOpen) break;
+
+        console.log(`  ⚠ Tentativa ${attempt} falhou, tentando novamente...`);
+        await this.sleep(500);
       }
 
-      // Passo 3: Clicar em "Informações da vaga" - tentar múltiplas abordagens
+      if (!dropdownOpen) {
+        console.warn(
+          "  ⚠ Dropdown não detectado como aberto, tentando prosseguir mesmo assim..."
+        );
+      }
+
+      // Passo 3: Clicar em "Informações da vaga"
       console.log(`  Procurando botão "Informações da vaga"...`);
 
       let infoClicked = false;
 
-      // Abordagem 1: Seletor específico da linha (múltiplas variações)
+      // Abordagem 1: Seletor específico da linha (expandido com script do usuário)
       const infoButtonSelectors = [
+        // Baseado no script do usuário (Padrão exato observado: tr > ul > div:nth-of-type(2) > li > button ou variantes)
         `tbody tr:nth-child(${rowNumber}) ul > div:nth-of-type(2) button`,
+        `tbody tr:nth-child(${rowNumber}) ul > div:nth-of-type(2) li button`,
+        `tbody tr:nth-child(${rowNumber}) ul > div:nth-of-type(2) a`,
+        
+        // Genéricos
         `tbody tr:nth-child(${rowNumber}) .dropdown-menu button:nth-of-type(2)`,
         `tbody tr:nth-child(${rowNumber}) .dropdown-menu > div:nth-of-type(2) button`,
+        `tbody tr:nth-child(${rowNumber}) .dropdown-menu a:nth-of-type(2)`,
         `tbody tr:nth-child(${rowNumber}) .dropdown-menu li:nth-child(2) button`,
         `tbody tr:nth-child(${rowNumber}) .dropdown-menu li:nth-child(2) a`,
-        `tbody tr:nth-child(${rowNumber}) .dropdown-menu li:nth-child(2)`,
         `tbody tr:nth-child(${rowNumber}) [aria-label*="Informações"]`,
         `tbody tr:nth-child(${rowNumber}) .show button:nth-of-type(2)`,
-        `tbody tr:nth-child(${rowNumber}) ul.show > div:nth-of-type(2) button`,
+        `tbody tr:nth-child(${rowNumber}) .dropdown-menu-right button`,
       ];
 
       for (const selector of infoButtonSelectors) {
         try {
-          await page.waitForSelector(selector, {
-            visible: true,
-            timeout: 1500,
-          });
-          console.log(
-            `  Clicando em "Informações da vaga" com seletor: ${selector}`
-          );
-          await page.click(selector);
-          infoClicked = true;
-          console.log(`  ✓ Botão clicado`);
-          break;
+          const btn = await page.$(selector);
+          if (btn) {
+            // Verificar visibilidade
+            const isVisible = await btn.boundingBox();
+            if (isVisible) {
+              console.log(
+                `  Clicando em "Informações da vaga" com seletor: ${selector}`
+              );
+              await btn.click({ delay: 50 });
+              infoClicked = true;
+              break;
+            }
+          }
         } catch (e) {
           continue;
         }
       }
 
-      // Abordagem 2: Buscar por texto DENTRO da linha específica
+      // Abordagem 2: Buscar por texto DENTRO da linha (mais agressiva)
       if (!infoClicked) {
-        console.log(`  Tentando encontrar por texto na linha ${rowNumber}...`);
+        console.log(
+          `  Tentando encontrar botão de informações por texto/JS...`
+        );
         infoClicked = await page.evaluate((rowNum) => {
-          // Buscar dropdown DENTRO da linha específica
           const row = document.querySelector(`tbody tr:nth-child(${rowNum})`);
           if (!row) return false;
 
-          // Procurar dropdown dentro da linha (múltiplos seletores)
-          const dropdownSelectors = [
-            ".dropdown-menu.show",
-            ".dropdown-menu",
-            "ul.dropdown-menu",
-            "ul.show",
-            ".show ul",
-            '[class*="dropdown"]',
-          ];
+          // Seletor genérico para itens que podem ser o botão
+          const candidates = row.querySelectorAll(
+            'button, a, li, span, div[role="button"]'
+          );
 
-          let dropdown = null;
-          for (const sel of dropdownSelectors) {
-            dropdown = row.querySelector(sel);
-            if (dropdown) break;
-          }
+          for (const el of candidates) {
+            const text = el.textContent.trim().toLowerCase();
+            const isVisible = el.offsetParent !== null; // Verifica visibilidade básica
 
-          if (dropdown) {
-            const buttons = dropdown.querySelectorAll(
-              "button, a, li, div, span"
-            );
-            for (const btn of buttons) {
-              const text = btn.textContent.trim().toLowerCase();
-              if (
-                text.includes("informações") ||
+            // Verifica texto
+            if (
+              (text.includes("informações") ||
                 text.includes("informacoes") ||
-                text === "info"
-              ) {
-                btn.click();
-                return true;
-              }
+                text.includes("detalhes")) &&
+              isVisible
+            ) {
+              el.click();
+              return true;
             }
           }
-
-          // Fallback: procurar qualquer elemento clicável na linha com texto de informações
-          const allClickable = row.querySelectorAll(
-            'button, a, [role="button"], [onclick]'
-          );
-          for (const el of allClickable) {
+          // Fallback: tenta clicar mesmo que não esteja visível (caso o dropdown esteja "hidden" mas clickavel)
+          for (const el of candidates) {
             const text = el.textContent.trim().toLowerCase();
             if (text.includes("informações") || text.includes("informacoes")) {
               el.click();
               return true;
             }
           }
-
           return false;
         }, rowNumber);
       }
 
-      if (!infoClicked) {
-        throw new Error('Botão "Informações da vaga" não encontrado');
+      if (infoClicked) {
+        console.log(`  ✓ Botão de informações clicado`);
+      } else {
+        throw new Error(
+          'Botão "Informações da vaga" não encontrado ou não clicável'
+        );
       }
 
       console.log(`  Aguardando modal...`);
@@ -590,21 +610,38 @@ class VacancyExtractor {
         '[role="dialog"]',
         ".modal",
         '[class*="modal"]',
+        "#modal-detalhes", // Possível ID
+        ".modal.show",
       ];
 
       let modalFound = false;
-      for (const selector of modalSelectors) {
-        try {
-          await page.waitForSelector(selector, {
-            visible: true,
-            timeout: 2000,
-          });
-          console.log(`  Modal encontrado com seletor: ${selector}`);
-          modalFound = true;
-          break;
-        } catch (e) {
-          continue;
+      for (let i = 0; i < 5; i++) {
+        // Loop de espera manual (5 segundos)
+        for (const selector of modalSelectors) {
+          try {
+            // Verificar se existe e está visível via evaluate para ser mais preciso
+            const found = await page.evaluate((sel) => {
+              const el = document.querySelector(sel);
+              if (!el) return false;
+              const style = window.getComputedStyle(el);
+              return (
+                style.display !== "none" &&
+                style.visibility !== "hidden" &&
+                style.opacity !== "0"
+              );
+            }, selector);
+
+            if (found) {
+              console.log(`  Modal encontrado com seletor: ${selector}`);
+              modalFound = true;
+              break;
+            }
+          } catch (e) {
+            continue;
+          }
         }
+        if (modalFound) break;
+        await this.sleep(1000);
       }
 
       if (!modalFound) {
@@ -617,6 +654,34 @@ class VacancyExtractor {
       console.error(`✗ Erro ao abrir modal: ${error.message}`);
       return { success: false, expectedTitle: null };
     }
+  }
+
+  /**
+   * Verifica se o dropdown da linha está aberto
+   * @param {Page} page - Instância da página do Puppeteer
+   * @param {number} rowNumber - Número da linha (1-based)
+   * @returns {Promise<boolean>} True se aberto
+   */
+  async checkDropdownOpen(page, rowNumber) {
+    return await page.evaluate((rowNum) => {
+      const row = document.querySelector(`tbody tr:nth-child(${rowNum})`);
+      if (!row) return false;
+      
+      // Verifica classes padrão do Bootstrap e estilos de display
+      const dropdown = row.querySelector(
+        '.dropdown-menu.show, .dropdown-menu[style*="display: block"], ul.show, .show .dropdown-menu, .open .dropdown-menu'
+      );
+      
+      if (dropdown) return true;
+      
+      // Verifica atributo aria-expanded no botão toggle
+      const toggle = row.querySelector('[data-toggle="dropdown"], .dropdown-toggle, [aria-haspopup="true"]');
+      if (toggle && toggle.getAttribute('aria-expanded') === 'true') {
+        return true;
+      }
+      
+      return false;
+    }, rowNumber);
   }
 
   /**
